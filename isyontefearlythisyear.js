@@ -34,7 +34,6 @@ let histLine = d3.line()
 
 let aggData, byEvent, rawData;
 function dataCallback(data) {
-    console.log(data);
     aggData = data[0];
     rawData = data[1];
 
@@ -96,8 +95,6 @@ function size() {
     svg.attr("width", outerWidth).attr("height", outerHeight);
 
     xAxisG.attr("transform", "translate(0, " + height + ")");
-
-    // update();
 }
 size();
 d3.select(window).on("resize", () => {
