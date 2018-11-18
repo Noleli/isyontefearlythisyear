@@ -52,6 +52,7 @@ function update() {
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
     let mainG = g.append("g");
     let overlayG = mainG.append("g").attr("class", "overlays");
+    overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
     let xAxisG = g.append("g").attr("class", "xAxis");
     let path = mainG.append("path").attr("class", "hist");
 
@@ -83,6 +84,9 @@ function update() {
     });
 
     events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
+    events.select(".yearLine line")
+        .attr("y2", height)
+        .attr("transform", function(d) { return "translate(" + x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + ")" });
 
     // let yearLines = overlayG.selectAll("g.yearLine").data(rawData.filter(d => d.year == year));
     // yearLines.exit().remove();
