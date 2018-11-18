@@ -9,9 +9,16 @@ let svg = d3.select("#vis-container").append("svg");
 let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
 let mainG = g.append("g");
+let overlayG = mainG.append("g").attr("class", "overlays");
+
 let xAxisG = g.append("g");
 
-d3.json("agg_data.json").then(dataCallback);
+Promise.all([
+    d3.json("agg_data.json"),
+    d3.json("data.json")
+]).then(dataCallback);
+
+let thisYear = new Date().getFullYear();
 
 let x = d3.scalePoint()
     .domain(makeDateRange());
@@ -25,14 +32,21 @@ let histLine = d3.line()
     .x(d => x(d.date))
     .y(d => histY(d.count));
 
-let aggData, byEvent;
+let aggData, byEvent, rawData;
 function dataCallback(data) {
-    aggData = data;
+    console.log(data);
+    aggData = data[0];
+    rawData = data[1];
+
     let totalYears = d3.sum(aggData.filter(d => d.event == aggData[0].event), d => d.count);
 
     aggData.forEach(d => {
         d.date = d.month + "-" + d.day;
         d.freq = d.count/totalYears;
+    });
+
+    rawData.forEach(d => {
+        d.date = d.month + "-" + d.day;
     });
 
     byEvent = d3.nest()
@@ -42,6 +56,7 @@ function dataCallback(data) {
     histY.domain([0, d3.max(aggData, d => d.count)]);
 
     update();
+    updateYearLine(thisYear);
 }
 
 function update() {
@@ -57,6 +72,16 @@ function update() {
         .attr("x", d => x(d[0].date));
 
     xAxisG.call(xAxis);
+}
+
+function updateYearLine(year) {
+    let yearLines = overlayG.selectAll("g.yearLine").data(rawData.filter(d => d.year == year));
+    yearLines.exit().remove();
+    let ylEnter = yearLines.enter().append("g").attr("class", "yearLine");
+    ylEnter.append("line")
+        .attr("y1", 0).attr("y2", height);
+    yearLines = ylEnter.merge(yearLines);
+    yearLines.attr("transform", d => "translate(" + x(d.date) + ")");
 }
 
 function size() {
@@ -75,7 +100,11 @@ function size() {
     // update();
 }
 size();
-d3.select(window).on("resize", () => {size(); update();});
+d3.select(window).on("resize", () => {
+    size();
+    update();
+    updateYearLine(thisYear);
+});
 
 function makeDateRange(start, stop) {
     let startMonth, startDay,

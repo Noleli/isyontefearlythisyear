@@ -7,3 +7,7 @@
     fill: #555555;
     font-size: 14px;
 }
+
+.overlays .yearLine line {
+    stroke: #ee0022;
+}
