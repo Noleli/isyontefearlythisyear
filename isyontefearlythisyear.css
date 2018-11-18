@@ -2,3 +2,8 @@
     stroke: #000000;
     fill: none;
 }
+
+.event .eventLabel {
+    fill: #555555;
+    font-size: 14px;
+}

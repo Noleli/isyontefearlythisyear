@@ -49,9 +49,12 @@ function update() {
     events.exit().remove();
     let eventsEnter = events.enter().append("g").attr("class", "event");
     eventsEnter.append("path").attr("class", "hist");
+    eventsEnter.append("text").attr("class", "eventLabel").text(d => d[0].event);
     events = eventsEnter.merge(events);
 
     events.selectAll("path.hist").attr("d", histLine);
+    events.selectAll("text.eventLabel")
+        .attr("x", d => x(d[0].date));
 
     xAxisG.call(xAxis);
 }
