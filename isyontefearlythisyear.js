@@ -10,6 +10,7 @@ let container = d3.select("#vis-container");
 let thisYear = new Date().getFullYear();
 
 let x = d3.local();
+// let xTime = d3.local();
 let xAxis = d3.local();
 let histY = d3.scaleLinear();
 let histLine = d3.local();
@@ -59,7 +60,10 @@ function update() {
             .x(d => x.get(this)(d.date))
             .y(d => histY(d.count)));
 
-        xAxis.set(this, d3.axisBottom());
+        xAxis.set(this, d3.axisBottom()
+            // .ticks(window.innerWidth <= 768 ? d3.timeWeek.every(1) : d3.timeDay.every(1))
+            .tickFormat(d3.utcFormat("%m-%d"))
+        );
     });
 
     if(eventsEnter.nodes().length > 0) size();
@@ -68,8 +72,14 @@ function update() {
 
     events.each(function(d) {
         let dates = d.value.values().map(dd => dd.date);
-        x.set(this, d3.scalePoint().domain(makeDateRange(dates[0], dates[dates.length-1])).range([0, width]));
-        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(x.get(this)));
+        let tx = x.set(this, d3.scalePoint().domain(makeDateRange(dates[0], dates[dates.length-1])).range([0, width]));
+
+        let xTime = d3.scaleTime()
+            .domain(makeDateRange(dates[0], dates[dates.length-1], true))
+            .range(tx.range());
+            // .ticks(d3.timeDay.every(1))
+            // .tickFormat(d3.utcFormat("%m-%d"));
+        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.timeWeek.every(1) : d3.timeDay.every(1)));
     });
 
     events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
@@ -102,7 +112,7 @@ d3.select(window).on("resize", () => {
     update();
 });
 
-function makeDateRange(start, stop) {
+function makeDateRange(start, stop, dates) {
     let startMonth, startDay,
         stopMonth, stopDay;
     if(start) {
@@ -116,15 +126,19 @@ function makeDateRange(start, stop) {
 
     if(stop) {
         stopMonth = +stop.split("-")[0] - 1,
-        stopDay = +stop.split("-")[1] + 1; // this function should be inclusive, so add 1 to stop
+        stopDay = +stop.split("-")[1] + (dates ? 0 : 1); // this function should be inclusive, so add 1 to stop
     }
     else {
         stopMonth = 11,
         stopDay = 32;
     }
     // pick a gregorian leap year (2016) and use D3 to do the hard work
-    let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
 
     // scale domains have to be numeric or strings, so using m-d strings (no leading zeros)
-    return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
+    // if passed in, dates gives values for a time scale (useful for axis)
+    if(dates) return [Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay)];
+    else {
+        let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
+        return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
+    }
 }
