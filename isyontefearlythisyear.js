@@ -75,9 +75,10 @@ function updateYearLine(year) {
     yearLines.exit().remove();
     let ylEnter = yearLines.enter().append("g").attr("class", "yearLine");
     ylEnter.append("line")
-        .attr("y1", 0).attr("y2", height);
+        .attr("y1", 0)
     yearLines = ylEnter.merge(yearLines);
     yearLines.attr("transform", d => "translate(" + x(d.date) + ")");
+    yearLines.select("line").attr("y2", height);
 }
 
 function size() {
