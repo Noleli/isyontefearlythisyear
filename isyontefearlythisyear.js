@@ -13,11 +13,6 @@ let overlayG = mainG.append("g").attr("class", "overlays");
 
 let xAxisG = g.append("g");
 
-Promise.all([
-    d3.json("agg_data.json"),
-    d3.json("data.json")
-]).then(dataCallback);
-
 let thisYear = new Date().getFullYear();
 
 let x = d3.scalePoint()
@@ -32,43 +27,45 @@ let histLine = d3.line()
     .x(d => x(d.date))
     .y(d => histY(d.count));
 
-let aggData, byEvent, rawData;
+d3.json("data.json").then(dataCallback);
+
+let aggData, rawData;
 function dataCallback(data) {
-    aggData = data[0];
-    rawData = data[1];
+    rawData = data;
 
-    let totalYears = d3.sum(aggData.filter(d => d.event == aggData[0].event), d => d.count);
-
-    aggData.forEach(d => {
-        d.date = d.month + "-" + d.day;
-        d.freq = d.count/totalYears;
-    });
-
+    let totalYears = (new Set(rawData.map(d => d.year))).size;
+    
     rawData.forEach(d => {
         d.date = d.month + "-" + d.day;
     });
+    rawData = rawData.sort((a, b) => {
+        return a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month);
+    });
 
-    byEvent = d3.nest()
+    aggData = d3.nest()
         .key(d => d.event)
-        .map(aggData);
+        .key(d => d.date)
+        // .sortValues((a, b) => a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month))
+        .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, freq: d.length/totalYears } })
+        .map(rawData);
 
-    histY.domain([0, d3.max(aggData, d => d.count)]);
+    histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]);
 
     update();
     updateYearLine(thisYear);
 }
 
 function update() {
-    let events = mainG.selectAll(".event").data(byEvent.values());
+    let events = mainG.selectAll(".event").data(aggData.values());
     events.exit().remove();
     let eventsEnter = events.enter().append("g").attr("class", "event");
     eventsEnter.append("path").attr("class", "hist");
-    eventsEnter.append("text").attr("class", "eventLabel").text(d => d[0].event);
+    eventsEnter.append("text").attr("class", "eventLabel").text(d => d.values()[0].event);
     events = eventsEnter.merge(events);
 
-    events.selectAll("path.hist").attr("d", histLine);
+    events.selectAll("path.hist").attr("d", d => histLine(d.values()));
     events.selectAll("text.eventLabel")
-        .attr("x", d => x(d[0].date));
+        .attr("x", d => x(d.values()[0].date));
 
     xAxisG.call(xAxis);
 }
