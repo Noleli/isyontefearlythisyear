@@ -3,15 +3,21 @@
 let outerWidth, outerHeight,
     width, height;
 
-let margin = { top: 0, right: 0, bottom: 0, left: 0 };
+let margin = { top: 20, right: 12, bottom: 20, left: 12 };
 
 let svg = d3.select("#vis-container").append("svg");
 let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
+let mainG = g.append("g");
+let xAxisG = g.append("g");
 
 d3.json("agg_data.json").then(dataCallback);
 
 let x = d3.scalePoint()
     .domain(makeDateRange());
+
+let xAxis = d3.axisBottom(x)
+    .tickValues(["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1", "10-1", "11-1", "12-1"]);
 
 let histHeight = 60;
 let histY = d3.scaleLinear()
@@ -41,13 +47,15 @@ function dataCallback(data) {
 }
 
 function update() {
-    let events = g.selectAll(".event").data(byEvent.values());
+    let events = mainG.selectAll(".event").data(byEvent.values());
     events.exit().remove();
     let eventsEnter = events.enter().append("g").attr("class", "event");
     eventsEnter.append("path").attr("class", "hist");
     events = eventsEnter.merge(events);
 
     events.selectAll("path.hist").attr("d", histLine);
+
+    xAxisG.call(xAxis);
 }
 
 function size() {
@@ -59,6 +67,8 @@ function size() {
 
     x.range([0, width]);
     svg.attr("width", outerWidth).attr("height", outerHeight);
+
+    xAxisG.attr("transform", "translate(0, " + height + ")");
 
     // update();
 }
