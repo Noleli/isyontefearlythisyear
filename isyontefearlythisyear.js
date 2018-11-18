@@ -1,15 +1,45 @@
 "use strict";
 
+let outerWidth, outerHeight,
+    width, height;
+
+let margin = { top: 0, right: 0, bottom: 0, left: 0 };
+
+let svg = d3.select("#vis-container").append("svg");
+let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+
 d3.json("agg_data.json").then(dataCallback);
 
 let x = d3.scalePoint()
-    .domain(makeDateRange())
-    .range([0, window.innerWidth]);
+    .domain(makeDateRange());
 
-let agg_data;
+let aggData, byEvent;
 function dataCallback(data) {
-    agg_data = data;
+    aggData = data;
+    aggData.forEach(d => d.date = d.month + "-" + d.day);
+
+    byEvent = d3.nest()
+        .key(d => d.event)
+        .map(aggData);
 }
+
+function update() {
+
+}
+
+function size() {
+    outerWidth = window.innerWidth,
+    outerHeight = window.innerHeight;
+
+    width = outerWidth - margin.left - margin.right,
+    height = outerHeight - margin.top - margin.bottom;
+
+    x.range([0, width]);
+    svg.attr("width", outerWidth).attr("height", outerHeight);
+
+    update();
+}
+size();
 
 function makeDateRange(start, stop) {
     let startMonth, startDay,
