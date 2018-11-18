@@ -3,29 +3,16 @@
 let outerWidth, outerHeight,
     width, height;
 
-let margin = { top: 20, right: 12, bottom: 20, left: 12 };
+let margin = { top: 20, right: 16, bottom: 20, left: 16 };
 
-let svg = d3.select("#vis-container").append("svg");
-let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-
-let mainG = g.append("g");
-let overlayG = mainG.append("g").attr("class", "overlays");
-
-let xAxisG = g.append("g");
+let container = d3.select("#vis-container");
 
 let thisYear = new Date().getFullYear();
 
-let x = d3.scalePoint()
-    .domain(makeDateRange());
-
-let xAxis = d3.axisBottom(x)
-    .tickValues(["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1", "10-1", "11-1", "12-1"]);
-
+let x = d3.local();
+let xAxis = d3.local();
 let histY = d3.scaleLinear();
-
-let histLine = d3.line()
-    .x(d => x(d.date))
-    .y(d => histY(d.count));
+let histLine = d3.local();
 
 d3.json("data.json").then(dataCallback);
 
@@ -52,56 +39,72 @@ function dataCallback(data) {
     histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]);
 
     update();
-    updateYearLine(thisYear);
 }
 
 function update() {
-    let events = mainG.selectAll(".event").data(aggData.values());
+    let events = container.selectAll(".event").data(aggData.entries(), d => d.key);
     events.exit().remove();
-    let eventsEnter = events.enter().append("g").attr("class", "event");
-    eventsEnter.append("path").attr("class", "hist");
-    eventsEnter.append("text").attr("class", "eventLabel").text(d => d.values()[0].event);
+    let eventsEnter = events.enter().append("div").attr("class", "event");
+
+    let label = eventsEnter.append("h2").text(d => d.key);
+    let svg = eventsEnter.append("svg");
+    let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+    let mainG = g.append("g");
+    let overlayG = mainG.append("g").attr("class", "overlays");
+    overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
+    let xAxisG = g.append("g").attr("class", "xAxis");
+    let path = mainG.append("path").attr("class", "hist");
+
+    eventsEnter.each(function(d) {
+        histLine.set(this, d3.line()
+            .x(d => x.get(this)(d.date))
+            .y(d => histY(d.count)));
+
+        xAxis.set(this, d3.axisBottom()
+            .tickSizeOuter(0)
+            .tickFormat(d3.utcFormat("%m-%d"))
+        );
+    });
+
+    if(eventsEnter.nodes().length > 0) size();
+
     events = eventsEnter.merge(events);
 
-    events.selectAll("path.hist").attr("d", d => histLine(d.values()));
-    events.selectAll("text.eventLabel")
-        .attr("x", d => x(d.values()[0].date));
+    events.each(function(d) {
+        let dates = d.value.values().map(dd => dd.date);
+        let tx = x.set(this, d3.scalePoint().domain(makeDateRange(dates[0], dates[dates.length-1])).range([0, width]));
 
-    xAxisG.call(xAxis);
-}
+        let xTime = d3.scaleUtc()
+            .domain(makeDateRange(dates[0], dates[dates.length-1], true))
+            .range(tx.range());
+        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
+    });
 
-function updateYearLine(year) {
-    let yearLines = overlayG.selectAll("g.yearLine").data(rawData.filter(d => d.year == year));
-    yearLines.exit().remove();
-    let ylEnter = yearLines.enter().append("g").attr("class", "yearLine");
-    ylEnter.append("line")
-        .attr("y1", 0)
-    yearLines = ylEnter.merge(yearLines);
-    yearLines.attr("transform", d => "translate(" + x(d.date) + ")");
-    yearLines.select("line").attr("y2", height);
+    events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
+    events.select(".yearLine line")
+        .attr("y2", height)
+        .attr("transform", function(d) { return "translate(" + x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + ")" });
 }
 
 function size() {
-    outerWidth = window.innerWidth,
-    outerHeight = window.innerHeight;
+    outerWidth = window.innerWidth * .8,
+    outerHeight = 100;
 
     width = outerWidth - margin.left - margin.right,
     height = outerHeight - margin.top - margin.bottom;
 
-    x.range([0, width]);
     histY.range([height, 0]);
-    svg.attr("width", outerWidth).attr("height", outerHeight);
-
-    xAxisG.attr("transform", "translate(0, " + height + ")");
+    
+    container.selectAll("svg").attr("width", outerWidth).attr("height", outerHeight);
+    container.selectAll("g.xAxis").attr("transform", "translate(0, " + height + ")");
 }
 size();
 d3.select(window).on("resize", () => {
     size();
     update();
-    updateYearLine(thisYear);
 });
 
-function makeDateRange(start, stop) {
+function makeDateRange(start, stop, dates) {
     let startMonth, startDay,
         stopMonth, stopDay;
     if(start) {
@@ -115,15 +118,19 @@ function makeDateRange(start, stop) {
 
     if(stop) {
         stopMonth = +stop.split("-")[0] - 1,
-        stopDay = +stop.split("-")[1] + 1; // this function should be inclusive, so add 1 to stop
+        stopDay = +stop.split("-")[1] + (dates ? 0 : 1); // this function should be inclusive, so add 1 to stop
     }
     else {
         stopMonth = 11,
         stopDay = 32;
     }
     // pick a gregorian leap year (2016) and use D3 to do the hard work
-    let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
 
     // scale domains have to be numeric or strings, so using m-d strings (no leading zeros)
-    return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
+    // if passed in, dates gives values for a time scale (useful for axis)
+    if(dates) return [new Date(Date.UTC(2016, startMonth, startDay)), new Date(Date.UTC(2016, stopMonth, stopDay))];
+    else {
+        let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
+        return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
+    }
 }
