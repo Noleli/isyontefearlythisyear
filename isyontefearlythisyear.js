@@ -19,9 +19,7 @@ let x = d3.scalePoint()
 let xAxis = d3.axisBottom(x)
     .tickValues(["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1", "10-1", "11-1", "12-1"]);
 
-let histHeight = 60;
-let histY = d3.scaleLinear()
-    .range([histHeight, 0]);
+let histY = d3.scaleLinear();
 
 let histLine = d3.line()
     .x(d => x(d.date))
@@ -66,6 +64,7 @@ function size() {
     height = outerHeight - margin.top - margin.bottom;
 
     x.range([0, width]);
+    histY.range([height, 0]);
     svg.attr("width", outerWidth).attr("height", outerHeight);
 
     xAxisG.attr("transform", "translate(0, " + height + ")");
@@ -73,6 +72,7 @@ function size() {
     // update();
 }
 size();
+d3.select(window).on("resize", () => {size(); update();});
 
 function makeDateRange(start, stop) {
     let startMonth, startDay,
