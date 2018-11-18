@@ -3,14 +3,13 @@
 let outerWidth, outerHeight,
     width, height;
 
-let margin = { top: 20, right: 12, bottom: 20, left: 12 };
+let margin = { top: 20, right: 16, bottom: 20, left: 16 };
 
 let container = d3.select("#vis-container");
 
 let thisYear = new Date().getFullYear();
 
 let x = d3.local();
-// let xTime = d3.local();
 let xAxis = d3.local();
 let histY = d3.scaleLinear();
 let histLine = d3.local();
@@ -62,7 +61,7 @@ function update() {
             .y(d => histY(d.count)));
 
         xAxis.set(this, d3.axisBottom()
-            // .ticks(window.innerWidth <= 768 ? d3.timeWeek.every(1) : d3.timeDay.every(1))
+            .tickSizeOuter(0)
             .tickFormat(d3.utcFormat("%m-%d"))
         );
     });
@@ -75,27 +74,16 @@ function update() {
         let dates = d.value.values().map(dd => dd.date);
         let tx = x.set(this, d3.scalePoint().domain(makeDateRange(dates[0], dates[dates.length-1])).range([0, width]));
 
-        let xTime = d3.scaleTime()
+        let xTime = d3.scaleUtc()
             .domain(makeDateRange(dates[0], dates[dates.length-1], true))
             .range(tx.range());
-            // .ticks(d3.timeDay.every(1))
-            // .tickFormat(d3.utcFormat("%m-%d"));
-        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.timeWeek.every(1) : d3.timeDay.every(1)));
+        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
     });
 
     events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
     events.select(".yearLine line")
         .attr("y2", height)
         .attr("transform", function(d) { return "translate(" + x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + ")" });
-
-    // let yearLines = overlayG.selectAll("g.yearLine").data(rawData.filter(d => d.year == year));
-    // yearLines.exit().remove();
-    // let ylEnter = yearLines.enter().append("g").attr("class", "yearLine");
-    // ylEnter.append("line")
-    //     .attr("y1", 0)
-    // yearLines = ylEnter.merge(yearLines);
-    // yearLines.attr("transform", d => "translate(" + x(d.date) + ")");
-    // yearLines.select("line").attr("y2", height);
 }
 
 function size() {
@@ -140,7 +128,7 @@ function makeDateRange(start, stop, dates) {
 
     // scale domains have to be numeric or strings, so using m-d strings (no leading zeros)
     // if passed in, dates gives values for a time scale (useful for axis)
-    if(dates) return [Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay)];
+    if(dates) return [new Date(Date.UTC(2016, startMonth, startDay)), new Date(Date.UTC(2016, stopMonth, stopDay))];
     else {
         let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
         return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
