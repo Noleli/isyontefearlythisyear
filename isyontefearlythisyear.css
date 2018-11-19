@@ -10,4 +10,13 @@
 
 .overlays .yearLine line {
     stroke: #ee0022;
+    stroke-width: 2px;
+}
+
+.event .main .bars {
+    fill: #2E69FF;
+}
+
+.event .main .bars.leap {
+    fill: #54B1FF;
 }

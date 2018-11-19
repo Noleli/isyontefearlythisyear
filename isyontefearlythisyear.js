@@ -49,16 +49,16 @@ function update() {
     let label = eventsEnter.append("h2").text(d => d.key);
     let svg = eventsEnter.append("svg");
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-    let mainG = g.append("g");
-    let overlayG = mainG.append("g").attr("class", "overlays");
+    let mainG = g.append("g").attr("class", "main");
+    let overlayG = g.append("g").attr("class", "overlays");
     overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
     let xAxisG = g.append("g").attr("class", "xAxis");
-    let path = mainG.append("path").attr("class", "hist");
+    // let path = mainG.append("path").attr("class", "hist");
 
     eventsEnter.each(function(d) {
-        histLine.set(this, d3.line()
-            .x(d => x.get(this)(d.date))
-            .y(d => histY(d.count)));
+        // histLine.set(this, d3.line()
+        //     .x(d => x.get(this)(d.date))
+        //     .y(d => histY(d.count)));
 
         xAxis.set(this, d3.axisBottom()
             .tickSizeOuter(0)
@@ -71,19 +71,45 @@ function update() {
     events = eventsEnter.merge(events);
 
     events.each(function(d) {
+        let thisEvent = d3.select(this);
         let dates = d.value.values().map(dd => dd.date);
-        let tx = x.set(this, d3.scalePoint().domain(makeDateRange(dates[0], dates[dates.length-1])).range([0, width]));
+        let tx = x.set(this, d3.scaleBand()
+            .domain(makeDateRange(dates[0], dates[dates.length-1]))
+            .range([0, width])
+            .paddingInner(.3)
+        );
 
         let xTime = d3.scaleUtc()
             .domain(makeDateRange(dates[0], dates[dates.length-1], true))
-            .range(tx.range());
-        d3.select(this).select(".xAxis").call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
+            .range([tx.range()[0] + tx.bandwidth()/2, tx.range()[1] - tx.bandwidth()/2]);
+        thisEvent.select(".xAxis")
+            .call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
+
+        let stacked = d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d.value.entries());
+        let bars = thisEvent.select(".main").selectAll("g.bars").data(stacked, dd => dd.key);
+        bars = bars.enter().append("g")
+            .attr("class", "bars")
+            .classed("leap", dd => dd.key == "leapCount")
+            .merge(bars);
+        let bar = bars.selectAll("rect.bar").data(dd => dd, dd => dd.data.key);
+        bar = bar.enter().append("rect").attr("class", "bar").merge(bar);
+        bar
+            .attr("x", dd => tx(dd.data.key))
+            .attr("y", (dd, i) => histY(dd[1]))
+            .attr("width", tx.bandwidth())
+            .attr("height", dd => histY(dd[0]) - histY(dd[1]));
     });
 
-    events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
+    // let bars = events.select("g.main").selectAll("g.bars").data(d => d.value.entries(), d => d.key);
+    // bars.enter().append("g").attr("class", "bars")
+    //     // .each(d => console.log(d))
+    //     .selectAll("rect.bar").data(d => { console.log(d); return d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d) }, d => d.key)
+    //         .enter().append("rect").attr("class", "bar");
+
+    // events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
     events.select(".yearLine line")
         .attr("y2", height)
-        .attr("transform", function(d) { return "translate(" + x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + ")" });
+        .attr("transform", function(d) { return "translate(" + (x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + x.get(this).bandwidth()/2) + ")" });
 }
 
 function size() {
