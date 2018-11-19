@@ -33,7 +33,7 @@ function dataCallback(data) {
         .key(d => d.event)
         .key(d => d.date)
         // .sortValues((a, b) => a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month))
-        .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, freq: d.length/totalYears } })
+        .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, leapCount: d.filter(dd => dd.leap).length, nonLeapCount: d.filter(dd => !dd.leap).length, freq: d.length/totalYears } })
         .map(rawData);
 
     histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]);
