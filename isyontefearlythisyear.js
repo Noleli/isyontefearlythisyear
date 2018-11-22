@@ -23,7 +23,7 @@ function dataCallback(data) {
     let totalYears = (new Set(rawData.map(d => d.year))).size;
     
     rawData.forEach(d => {
-        d.date = d.month + "-" + d.day;
+        d.date = new Date(Date.UTC(2016, d.month - 1, d.day));
     });
     rawData = rawData.sort((a, b) => {
         return a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month);
@@ -73,15 +73,17 @@ function update() {
     events.each(function(d) {
         let thisEvent = d3.select(this);
         let dates = d.value.values().map(dd => dd.date);
+        
         let tx = x.set(this, d3.scaleBand()
-            .domain(makeDateRange(dates[0], dates[dates.length-1]))
+            .domain(makeDateRange(dates[0], dates[dates.length-1], true))
             .range([0, width])
             .paddingInner(.3)
         );
 
         let xTime = d3.scaleUtc()
-            .domain(makeDateRange(dates[0], dates[dates.length-1], true))
+            .domain([tx.domain()[0], tx.domain()[tx.domain().length-1]])
             .range([tx.range()[0] + tx.bandwidth()/2, tx.range()[1] - tx.bandwidth()/2]);
+        
         thisEvent.select(".xAxis")
             .call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
 
@@ -100,13 +102,6 @@ function update() {
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
     });
 
-    // let bars = events.select("g.main").selectAll("g.bars").data(d => d.value.entries(), d => d.key);
-    // bars.enter().append("g").attr("class", "bars")
-    //     // .each(d => console.log(d))
-    //     .selectAll("rect.bar").data(d => { console.log(d); return d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d) }, d => d.key)
-    //         .enter().append("rect").attr("class", "bar");
-
-    // events.select("path.hist").attr("d", function(d) { return histLine.get(this)(d.value.values()) });
     events.select(".yearLine line")
         .attr("y2", height)
         .attr("transform", function(d) { return "translate(" + (x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + x.get(this).bandwidth()/2) + ")" });
@@ -134,8 +129,8 @@ function makeDateRange(start, stop, dates) {
     let startMonth, startDay,
         stopMonth, stopDay;
     if(start) {
-        startMonth = +start.split("-")[0] - 1,
-        startDay = +start.split("-")[1];
+        startMonth = start.getUTCMonth(),
+        startDay = start.getUTCDate();
     }
     else {
         startMonth = 0,
@@ -143,8 +138,8 @@ function makeDateRange(start, stop, dates) {
     }
 
     if(stop) {
-        stopMonth = +stop.split("-")[0] - 1,
-        stopDay = +stop.split("-")[1] + (dates ? 0 : 1); // this function should be inclusive, so add 1 to stop
+        stopMonth = stop.getUTCMonth(),
+        stopDay = stop.getUTCDate() + 1; // this function should be inclusive, so add 1 to stop
     }
     else {
         stopMonth = 11,
@@ -152,11 +147,7 @@ function makeDateRange(start, stop, dates) {
     }
     // pick a gregorian leap year (2016) and use D3 to do the hard work
 
-    // scale domains have to be numeric or strings, so using m-d strings (no leading zeros)
-    // if passed in, dates gives values for a time scale (useful for axis)
-    if(dates) return [new Date(Date.UTC(2016, startMonth, startDay)), new Date(Date.UTC(2016, stopMonth, stopDay))];
-    else {
-        let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
-        return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
-    }
+    let range = d3.utcDay.range(Date.UTC(2016, startMonth, startDay), Date.UTC(2016, stopMonth, stopDay));
+    if(dates) return range;
+    else return range.map(d => (d.getUTCMonth() + 1) + "-" + d.getUTCDate());
 }
