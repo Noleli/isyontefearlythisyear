@@ -9,10 +9,7 @@ let container = d3.select("#vis-container");
 
 let thisYear = new Date().getFullYear();
 
-let x = d3.local();
-let xAxis = d3.local();
 let histY = d3.scaleLinear();
-let histLine = d3.local();
 
 d3.json("data.json").then(dataCallback);
 
@@ -53,18 +50,6 @@ function update() {
     let overlayG = g.append("g").attr("class", "overlays");
     overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
     let xAxisG = g.append("g").attr("class", "xAxis");
-    // let path = mainG.append("path").attr("class", "hist");
-
-    eventsEnter.each(function(d) {
-        // histLine.set(this, d3.line()
-        //     .x(d => x.get(this)(d.date))
-        //     .y(d => histY(d.count)));
-
-        xAxis.set(this, d3.axisBottom()
-            .tickSizeOuter(0)
-            .tickFormat(d3.utcFormat("%m-%d"))
-        );
-    });
 
     if(eventsEnter.nodes().length > 0) size();
 
@@ -74,18 +59,21 @@ function update() {
         let thisEvent = d3.select(this);
         let dates = d.value.values().map(dd => dd.date);
         
-        let tx = x.set(this, d3.scaleBand()
+        let tx = d3.scaleBand()
             .domain(makeDateRange(dates[0], dates[dates.length-1], true))
             .range([0, width])
-            .paddingInner(.3)
-        );
+            .paddingInner(.3);
 
         let xTime = d3.scaleUtc()
             .domain([tx.domain()[0], tx.domain()[tx.domain().length-1]])
             .range([tx.range()[0] + tx.bandwidth()/2, tx.range()[1] - tx.bandwidth()/2]);
+
+        let xAxis = d3.axisBottom()
+            .tickSizeOuter(0)
+            .tickFormat(d3.utcFormat("%m-%d"));
         
         thisEvent.select(".xAxis")
-            .call(xAxis.get(this).scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
+            .call(xAxis.scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
 
         let stacked = d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d.value.entries());
         let bars = thisEvent.select(".main").selectAll("g.bars").data(stacked, dd => dd.key);
@@ -100,11 +88,11 @@ function update() {
             .attr("y", (dd, i) => histY(dd[1]))
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
-    });
 
-    events.select(".yearLine line")
+        thisEvent.select(".yearLine line")
         .attr("y2", height)
-        .attr("transform", function(d) { return "translate(" + (x.get(this)(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + x.get(this).bandwidth()/2) + ")" });
+        .attr("transform", function(d) { return "translate(" + (tx(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + tx.bandwidth()/2) + ")" });
+    });
 }
 
 function size() {
