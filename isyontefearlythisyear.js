@@ -108,7 +108,10 @@ function update() {
 }
 
 function size() {
-    outerWidth = window.innerWidth * .8,
+    let containerContainer = d3.select(container.node().parentNode);
+    outerWidth = parseFloat(containerContainer.style("width"))
+        - parseFloat(containerContainer.style("padding-left"))
+        - parseFloat(containerContainer.style("padding-right")),
     outerHeight = 100;
 
     width = outerWidth - margin.left - margin.right,
