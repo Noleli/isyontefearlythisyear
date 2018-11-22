@@ -9,6 +9,8 @@ let container = d3.select("#vis-container");
 
 let thisYear = new Date().getFullYear();
 
+let x = d3.local(),
+    xTime = d3.local();
 let histY = d3.scaleLinear();
 
 d3.json("data.json").then(dataCallback);
@@ -16,8 +18,6 @@ d3.json("data.json").then(dataCallback);
 let aggData, rawData;
 function dataCallback(data) {
     rawData = data;
-
-    let totalYears = (new Set(rawData.map(d => d.year))).size;
     
     rawData.forEach(d => {
         d.date = new Date(Date.UTC(2016, d.month - 1, d.day));
@@ -26,19 +26,14 @@ function dataCallback(data) {
         return a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month);
     });
 
-    aggData = d3.nest()
-        .key(d => d.event)
-        .key(d => d.date)
-        // .sortValues((a, b) => a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month))
-        .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, leapCount: d.filter(dd => dd.leap).length, nonLeapCount: d.filter(dd => !dd.leap).length, freq: d.length/totalYears } })
-        .map(rawData);
-
-    histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]);
+    aggregateData();
 
     update();
 }
 
-function update() {
+function update(transition) {
+    let duration = transition ? 400 : 0;
+
     let events = container.selectAll(".event").data(aggData.entries(), d => d.key);
     events.exit().remove();
     let eventsEnter = events.enter().append("div").attr("class", "event");
@@ -53,37 +48,48 @@ function update() {
 
     if(eventsEnter.nodes().length > 0) size();
 
+    eventsEnter.each(function(d) {
+        let dates = d.value.values().map(dd => dd.date);
+        let dateRange = makeDateRange(dates[0], dates[dates.length-1], true);
+        x.set(this, d3.scaleBand()
+            .domain(dateRange)
+            .paddingInner(.3));
+
+        xTime.set(this, d3.scaleUtc()
+            .domain([dateRange[0], dateRange[dates.length-1]]));
+    });
+
     events = eventsEnter.merge(events);
 
     events.each(function(d) {
         let thisEvent = d3.select(this);
-        let dates = d.value.values().map(dd => dd.date);
         
-        let tx = d3.scaleBand()
-            .domain(makeDateRange(dates[0], dates[dates.length-1], true))
-            .range([0, width])
-            .paddingInner(.3);
-
-        let xTime = d3.scaleUtc()
-            .domain([tx.domain()[0], tx.domain()[tx.domain().length-1]])
-            .range([tx.range()[0] + tx.bandwidth()/2, tx.range()[1] - tx.bandwidth()/2]);
+        let tx = x.get(this).range([0, width]);
+        let txTime = xTime.get(this).range([tx.range()[0] + tx.bandwidth()/2, tx.range()[1] - tx.bandwidth()/2]);
 
         let xAxis = d3.axisBottom()
             .tickSizeOuter(0)
             .tickFormat(d3.utcFormat("%m-%d"));
         
         thisEvent.select(".xAxis")
-            .call(xAxis.scale(xTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
+            .call(xAxis.scale(txTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
 
         let stacked = d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d.value.entries());
         let bars = thisEvent.select(".main").selectAll("g.bars").data(stacked, dd => dd.key);
+        bars.exit().remove();
         bars = bars.enter().append("g")
             .attr("class", "bars")
             .classed("leap", dd => dd.key == "leapCount")
             .merge(bars);
         let bar = bars.selectAll("rect.bar").data(dd => dd, dd => dd.data.key);
-        bar = bar.enter().append("rect").attr("class", "bar").merge(bar);
-        bar
+        bar.exit().remove();
+        bar = bar.enter().append("rect").attr("class", "bar")
+            .attr("x", dd => tx(dd.data.key))
+            .attr("y", (dd, i) => histY(0))
+            .attr("width", tx.bandwidth())
+            .attr("height", 0)
+            .merge(bar);
+        bar.transition().duration(duration)
             .attr("x", dd => tx(dd.data.key))
             .attr("y", (dd, i) => histY(dd[1]))
             .attr("width", tx.bandwidth())
@@ -115,6 +121,22 @@ d3.select(window).on("resize", () => {
     size();
     update();
 });
+
+function aggregateData(startYear, endYear) {
+    startYear = startYear == undefined ? d3.min(rawData, d => d.year) : startYear;
+    endYear = endYear == undefined ? d3.max(rawData, d => d.year) : endYear;
+
+    let totalYears = endYear - startYear + 1;
+
+    aggData = d3.nest()
+        .key(d => d.event)
+        .key(d => d.date)
+        // .sortValues((a, b) => a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month))
+        .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, leapCount: d.filter(dd => dd.leap).length, nonLeapCount: d.filter(dd => !dd.leap).length, freq: d.length/totalYears } })
+        .map(rawData.filter(d => d.year >= startYear && d.year <= endYear));
+
+    histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]); // renormalize
+}
 
 function makeDateRange(start, stop, dates) {
     let startMonth, startDay,
