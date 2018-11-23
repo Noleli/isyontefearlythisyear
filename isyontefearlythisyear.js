@@ -7,7 +7,17 @@ let margin = { top: 20, right: 16, bottom: 20, left: 16 };
 
 let container = d3.select("#vis-container");
 
-let thisYear = new Date().getFullYear();
+let eventHoldover = {
+    "Tu BiShvat": 1,
+    "Erev Purim": 2,
+    "Erev Pesach": 9,
+    "Erev Shavuot": 3,
+    "Erev Tish'a B'Av": 2,
+    "Erev Rosh Hashana": 3,
+    "Erev Yom Kippur": 2,
+    "Erev Sukkot": 10,
+    "Chanukah: 1 Candle": 9
+};
 
 let x = d3.local(),
     xTime = d3.local();
@@ -15,12 +25,13 @@ let histY = d3.scaleLinear();
 
 d3.json("data.json").then(dataCallback);
 
-let aggData, rawData;
+let aggData, rawData, upcomingData;
 function dataCallback(data) {
     rawData = data;
     
     rawData.forEach(d => {
         d.date = new Date(Date.UTC(2016, d.month - 1, d.day));
+        d.actualDate = new Date(Date.UTC(d.year, d.month - 1, d.day));
     });
     rawData = rawData.sort((a, b) => {
         return a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month);
@@ -95,9 +106,9 @@ function update(transition) {
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
 
-        thisEvent.select(".yearLine line")
-        .attr("y2", height)
-        .attr("transform", function(d) { return "translate(" + (tx(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + tx.bandwidth()/2) + ")" });
+        // thisEvent.select(".yearLine line")
+        // .attr("y2", height)
+        // .attr("transform", function(d) { return "translate(" + (tx(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + tx.bandwidth()/2) + ")" });
     });
 }
 
@@ -121,6 +132,18 @@ d3.select(window).on("resize", () => {
     size();
     update();
 });
+
+function sortByUpcoming(date) {
+    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); // convert to naive
+    upcomingData = d3.nest()
+        .key(d => d.event)
+        .rollup(d => d[0]) // .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
+        .map(rawData
+            .filter(d => (d.actualDate - date)/1000/3600/24 > -eventHoldover[d.event])
+            .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
+        )
+        .values();
+}
 
 function aggregateData(startYear, endYear) {
     startYear = startYear == undefined ? d3.min(rawData, d => d.year) : startYear;
