@@ -38,6 +38,7 @@ function dataCallback(data) {
     });
 
     aggregateData();
+    sortByUpcoming(new Date());
 
     update();
 }
@@ -45,11 +46,11 @@ function dataCallback(data) {
 function update(transition) {
     let duration = transition ? 400 : 0;
 
-    let events = container.selectAll(".event").data(aggData.entries(), d => d.key);
+    let events = container.selectAll(".event").data(upcomingData.entries(), d => d.key);
     events.exit().remove();
     let eventsEnter = events.enter().append("div").attr("class", "event");
 
-    let label = eventsEnter.append("h2").text(d => d.key);
+    let label = eventsEnter.append("h2").attr("class", "label");
     let svg = eventsEnter.append("svg");
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
     let mainG = g.append("g").attr("class", "main");
@@ -60,7 +61,7 @@ function update(transition) {
     if(eventsEnter.nodes().length > 0) size();
 
     eventsEnter.each(function(d) {
-        let dates = d.value.values().map(dd => dd.date);
+        let dates = aggData.get(d.key).values().map(dd => dd.date);
         let dateRange = makeDateRange(dates[0], dates[dates.length-1], true);
         x.set(this, d3.scaleBand()
             .domain(dateRange)
@@ -71,6 +72,8 @@ function update(transition) {
     });
 
     events = eventsEnter.merge(events);
+    events.order();
+    events.select("h2.label").text(d => d.key + " " + d.value.year);
 
     events.each(function(d) {
         let thisEvent = d3.select(this);
@@ -85,7 +88,7 @@ function update(transition) {
         thisEvent.select(".xAxis")
             .call(xAxis.scale(txTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
 
-        let stacked = d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(d.value.entries());
+        let stacked = d3.stack().keys(["nonLeapCount", "leapCount"]).value((dd, k) => dd.value[k])(aggData.get(d.key).entries());
         let bars = thisEvent.select(".main").selectAll("g.bars").data(stacked, dd => dd.key);
         bars.exit().remove();
         bars = bars.enter().append("g")
@@ -141,8 +144,7 @@ function sortByUpcoming(date) {
         .map(rawData
             .filter(d => (d.actualDate - date)/1000/3600/24 > -eventHoldover[d.event])
             .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
-        )
-        .values();
+        );
 }
 
 function aggregateData(startYear, endYear) {
