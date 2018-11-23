@@ -109,9 +109,9 @@ function update(transition) {
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
 
-        // thisEvent.select(".yearLine line")
-        // .attr("y2", height)
-        // .attr("transform", function(d) { return "translate(" + (tx(rawData.filter(r => r.event == d.key && r.year == thisYear)[0].date) + tx.bandwidth()/2) + ")" });
+        thisEvent.select(".yearLine line")
+            .attr("y2", height)
+            .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
     });
 }
 
