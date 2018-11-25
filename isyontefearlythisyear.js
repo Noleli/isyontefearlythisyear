@@ -32,7 +32,8 @@ let selectedDate = d3.local();
 
 d3.json("data.json").then(dataCallback);
 
-let aggData, rawData, upcomingData;
+let aggData, rawData, upcomingData, upcomingPoint;
+
 function dataCallback(data) {
     rawData = data;
     
@@ -141,20 +142,35 @@ function update(transition) {
             .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
     });
 
-    let upcomingPoint = aggData.get(upcomingData.values()[0].event).get(upcomingData.values()[0].date);
     d3.select("#title-event-name").text(upcomingPoint.event);
     d3.select("#early-late").text(earlyLateDirection);
-    d3.select("#big-answer").text(formatBigAnswer(earlyLateThresholds(upcomingPoint.cumFreq)));
-    d3.select("#answer-description").text(upcomingPoint.event
-        + " starts on " + d3.utcFormat("%A %B %e, %Y")(upcomingData.values()[0].actualDate)
-        + ", which is "
-        + ((upcomingPoint.cumFreq - upcomingPoint.freq) < .5 ? "earlier than " : "later than ")
-        + percentFormat(1- upcomingPoint.cumFreq - upcomingPoint.freq) + " of " + upcomingPoint.event);
+    d3.select("#big-answer").text(makeBigAnswer());
+    d3.select("#answer-description").text(makeAnswerDescription());
 }
 
-function formatBigAnswer(result) {
-    if(result == earlyLateDirection) return "Yes";
+function makeBigAnswer() {
+    if(earlyLateThresholds(upcomingPoint.cumFreq) == earlyLateDirection) return "Yes";
     else return "No";
+}
+
+function makeAnswerDescription() {
+    let outString = upcomingPoint.event
+        + " starts on " + d3.utcFormat("%A, %B %e, %Y")(upcomingPoint.actualDate)
+        + ", which is ";
+
+    if((upcomingPoint.cumFreq - upcomingPoint.freq) < .5) {
+        outString = outString
+            + "earlier than "
+            + percentFormat(1 - (upcomingPoint.cumFreq - upcomingPoint.freq));
+    }
+    else {
+        outString = outString
+            + "later than "
+            + percentFormat(upcomingPoint.cumFreq - upcomingPoint.freq);
+    }
+    
+    outString = outString + " of " + upcomingPoint.event;
+    return outString;
 }
 
 let percentFormat = d3.format(".1%");
@@ -189,6 +205,9 @@ function sortByUpcoming(date) {
             .filter(d => (d.actualDate - date)/1000/3600/24 > -eventHoldover[d.event])
             .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
         );
+
+    upcomingPoint = aggData.get(upcomingData.values()[0].event).get(upcomingData.values()[0].date);
+    upcomingPoint.actualDate = upcomingData.values()[0].actualDate;
 }
 
 function aggregateData(startYear, endYear) {
