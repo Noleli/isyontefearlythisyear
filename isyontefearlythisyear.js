@@ -181,6 +181,14 @@ function aggregateData(startYear, endYear) {
         .rollup(d => { return { event: d[0].event, date: d[0].date, count: d.length, leapCount: d.filter(dd => dd.leap).length, nonLeapCount: d.filter(dd => !dd.leap).length, freq: d.length/totalYears } })
         .map(rawData.filter(d => d.year >= startYear && d.year <= endYear));
 
+    aggData.values().forEach(e => {
+        let cumFreq = 0;
+        e.values().forEach(d => {
+            cumFreq += d.freq;
+            d.cumFreq = cumFreq;
+        });
+    });
+
     histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]); // renormalize
 }
 
