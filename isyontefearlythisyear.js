@@ -1,5 +1,7 @@
 "use strict";
 
+let earlyLateDirection = "early";
+
 let outerWidth, outerHeight,
     width, height;
 
@@ -18,6 +20,10 @@ let eventHoldover = {
     "Erev Sukkot": 10,
     "Chanukah: 1 Candle": 9
 };
+
+let earlyLateThresholds = d3.scaleThreshold()
+    .domain([1/3, 2/3])
+    .range(["early", "ontime", "late"]);
 
 let x = d3.local(),
     xTime = d3.local();
@@ -125,7 +131,7 @@ function update(transition) {
             .attr("width", tx.bandwidth())
             .attr("height", outerHeight);
         overlays.select("text.overbar")
-            .text(dd => d3.format(".1%")(dd.freq))
+            .text(dd => percentFormat(dd.freq))
             .attr("y", dd => histY(dd.count))
             .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
             .attr("dy", -3);
@@ -134,7 +140,24 @@ function update(transition) {
             .attr("y2", height)
             .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
     });
+
+    let upcomingPoint = aggData.get(upcomingData.values()[0].event).get(upcomingData.values()[0].date);
+    d3.select("#title-event-name").text(upcomingPoint.event);
+    d3.select("#early-late").text(earlyLateDirection);
+    d3.select("#big-answer").text(formatBigAnswer(earlyLateThresholds(upcomingPoint.cumFreq)));
+    d3.select("#answer-description").text(upcomingPoint.event
+        + " starts on " + d3.utcFormat("%A %B %e, %Y")(upcomingData.values()[0].actualDate)
+        + ", which is "
+        + ((upcomingPoint.cumFreq - upcomingPoint.freq) < .5 ? "earlier than " : "later than ")
+        + percentFormat(1- upcomingPoint.cumFreq - upcomingPoint.freq) + " of " + upcomingPoint.event);
 }
+
+function formatBigAnswer(result) {
+    if(result == earlyLateDirection) return "Yes";
+    else return "No";
+}
+
+let percentFormat = d3.format(".1%");
 
 function size() {
     let containerContainer = d3.select(container.node().parentNode);
