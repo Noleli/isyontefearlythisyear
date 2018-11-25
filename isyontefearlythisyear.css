@@ -21,11 +21,15 @@
     fill: #54B1FF;
 }
 
-.event .overlays text.overbar {
+.event .overlays .dateOverlay rect.hover {
+    fill: rgba(0, 0, 0, 0);
+}
+
+.event .overlays .dateOverlay text.overbar {
     font-size: 12px;
     fill: none;
 }
 
-.event .overlays text.overbar.selected {
+.event .overlays .dateOverlay:hover text.overbar {
     fill: #000000;
 }

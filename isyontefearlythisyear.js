@@ -106,14 +106,6 @@ function update(transition) {
             .attr("y", (dd, i) => histY(0))
             .attr("width", tx.bandwidth())
             .attr("height", 0)
-            .on("mouseover", dd => {
-                selectedDate.set(thisEvent.node(), dd.data.key);
-                update();
-            })
-            .on("mouseout", dd => {
-                selectedDate.set(thisEvent.node(), null);
-                update();
-            })
             .merge(bar);
         bar.transition().duration(duration)
             .attr("x", dd => tx(dd.data.key))
@@ -121,15 +113,22 @@ function update(transition) {
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
 
-        let overbarText = thisEvent.select(".overbar").selectAll("text.overbar").data(aggData.get(d.key).values(), dd => dd.date);
-        overbarText.enter().append("text").attr("class", "overbar")
-            .merge(overbarText)
-                .text(dd => d3.format(".2%")(dd.freq))
-                .attr("x", dd => tx(dd.date))
-                .attr("y", dd => histY(dd.count))
-                .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
-                .attr("dy", -3)
-                .classed("selected", dd => selectedDate.get(thisEvent.node()) == dd.date);
+        let overlays = thisEvent.select("g.overlays").selectAll("g.dateOverlay").data(aggData.get(d.key).values(), dd => dd.date);
+        overlays.exit().remove();
+        let overlaysEnter = overlays.enter().append("g").attr("class", "dateOverlay");
+        overlaysEnter.append("rect").attr("class", "hover");
+        overlaysEnter.append("text").attr("class", "overbar");
+        overlays = overlays.merge(overlaysEnter);
+        overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
+        overlays.select("rect.hover")
+            .attr("y", -margin.top)
+            .attr("width", tx.bandwidth())
+            .attr("height", outerHeight);
+        overlays.select("text.overbar")
+            .text(dd => d3.format(".1%")(dd.freq))
+            .attr("y", dd => histY(dd.count))
+            .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
+            .attr("dy", -3);
 
         thisEvent.select(".yearLine line")
             .attr("y2", height)
