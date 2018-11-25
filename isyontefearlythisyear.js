@@ -22,6 +22,7 @@ let eventHoldover = {
 let x = d3.local(),
     xTime = d3.local();
 let histY = d3.scaleLinear();
+let selectedDate = d3.local();
 
 d3.json("data.json").then(dataCallback);
 
@@ -56,6 +57,7 @@ function update(transition) {
     let mainG = g.append("g").attr("class", "main");
     let overlayG = g.append("g").attr("class", "overlays");
     overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
+    overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
 
     if(eventsEnter.nodes().length > 0) size();
@@ -69,6 +71,8 @@ function update(transition) {
 
         xTime.set(this, d3.scaleUtc()
             .domain([dateRange[0], dateRange[dates.length-1]]));
+
+        selectedDate.set(this, null);
     });
 
     events = eventsEnter.merge(events);
@@ -102,12 +106,30 @@ function update(transition) {
             .attr("y", (dd, i) => histY(0))
             .attr("width", tx.bandwidth())
             .attr("height", 0)
+            .on("mouseover", dd => {
+                selectedDate.set(thisEvent.node(), dd.data.key);
+                update();
+            })
+            .on("mouseout", dd => {
+                selectedDate.set(thisEvent.node(), null);
+                update();
+            })
             .merge(bar);
         bar.transition().duration(duration)
             .attr("x", dd => tx(dd.data.key))
             .attr("y", (dd, i) => histY(dd[1]))
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
+
+        let overbarText = thisEvent.select(".overbar").selectAll("text.overbar").data(aggData.get(d.key).values(), dd => dd.date);
+        overbarText.enter().append("text").attr("class", "overbar")
+            .merge(overbarText)
+                .text(dd => d3.format(".2%")(dd.freq))
+                .attr("x", dd => tx(dd.date))
+                .attr("y", dd => histY(dd.count))
+                .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
+                .attr("dy", -3)
+                .classed("selected", dd => selectedDate.get(thisEvent.node()) == dd.date);
 
         thisEvent.select(".yearLine line")
             .attr("y2", height)

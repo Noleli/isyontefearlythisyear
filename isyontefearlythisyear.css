@@ -20,3 +20,12 @@
 .event .main .bars.leap {
     fill: #54B1FF;
 }
+
+.event .overlays text.overbar {
+    font-size: 12px;
+    fill: none;
+}
+
+.event .overlays text.overbar.selected {
+    fill: #000000;
+}
