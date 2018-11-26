@@ -153,8 +153,7 @@ function update(transition) {
             .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
     });
 
-    d3.select("#title-event-name").text(upcomingPoint.event);
-    d3.select("#early-late").text(earlyLateDirection);
+    d3.select("#big-question").text("Is " + upcomingPoint.event + " " + earlyLateDirection + " " + " this year?");
     d3.select("#big-answer").text(makeBigAnswer());
     d3.select("#answer-description").text(makeAnswerDescription());
 }
