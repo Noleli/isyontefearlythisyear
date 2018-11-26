@@ -207,7 +207,8 @@ function makeAnswerDescription() {
     let outString = "";
 
     if(makeBigAnswer() == "No") {
-        outString = "It’s " + formatOntimeness(earlyLateThresholds(upcomingPoint.cumFreq)) + " this year. ";
+        let ontimeness = formatOntimeness(earlyLateThresholds(upcomingPoint.cumFreq));
+        outString = "It’s " + (ontimeness == "on time" ? "right " : " ") + ontimeness + " this year. ";
     }
 
     outString = outString + upcomingPoint.event
