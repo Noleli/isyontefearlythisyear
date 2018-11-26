@@ -50,11 +50,11 @@
 }
 
 .event .belowAxis .thresholdLabel line {
-    stroke: #333333;
+    stroke: #555555;
 }
 
 .event .belowAxis .thresholdLabel text {
-    fill: #333333;
+    fill: #555555;
     font-size: 13px;
 }
 
