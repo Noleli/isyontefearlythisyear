@@ -176,7 +176,7 @@ function update(transition) {
 
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
-        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 20) + ")");
+        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 22) + ")");
         let thresholdLabels = thisEvent.select("g.belowAxis").selectAll("g.thresholdLabel").data(thresholdData, dd => dd);
         thresholdLabels.exit().remove();
         let thresholdLabelsEnter = thresholdLabels.enter().append("g").attr("class", "thresholdLabel");
