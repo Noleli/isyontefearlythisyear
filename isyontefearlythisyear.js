@@ -72,7 +72,9 @@ function update(transition) {
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
     let mainG = g.append("g").attr("class", "main");
     let overlayG = g.append("g").attr("class", "overlays");
-    overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
+    let yearLine = overlayG.append("g").attr("class", "yearLine");
+    yearLine.append("line").attr("y1", -margin.top);
+    yearLine.append("text");
     overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
     let belowAxis = g.append("g").attr("class", "belowAxis");
@@ -152,13 +154,27 @@ function update(transition) {
             .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
             .attr("dy", -3);
 
+        thisEvent.select(".yearLine")
+            .attr("transform", "translate(" + txTime(d.value.date) + ")");
         thisEvent.select(".yearLine line")
-            .attr("y2", height)
-            .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
+            .attr("y2", height + margin.bottom);
+        thisEvent.select(".yearLine text")
+            .text("This year")
+            .attr("y", -margin.top)
+            .attr("dx", function() {
+                let padding = 3;
+                let pos = txTime(d.value.date);
+                if(pos + this.getBBox().width + 2* padding > width) {
+                    return -this.getBBox().width - padding;
+                }
+                else return padding;
+            })
+            .attr("dy", 13);
+            // .attr("x")
 
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
-        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (margin.top + height + 1) + ")");
+        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 20) + ")");
         let thresholdLabels = thisEvent.select("g.belowAxis").selectAll("g.thresholdLabel").data(thresholdData, dd => dd);
         thresholdLabels.exit().remove();
         let thresholdLabelsEnter = thresholdLabels.enter().append("g").attr("class", "thresholdLabel");
@@ -212,10 +228,12 @@ function size() {
     outerWidth = parseFloat(containerContainer.style("width"))
         - parseFloat(containerContainer.style("padding-left"))
         - parseFloat(containerContainer.style("padding-right")),
-    outerHeight = 140;
+    // outerHeight = 140;
+    height = 100;
+    outerHeight = height + margin.top + margin.bottom;
 
     width = outerWidth - margin.left - margin.right,
-    height = outerHeight - margin.top - margin.bottom;
+    // height = outerHeight - margin.top - margin.bottom;
 
     histY.range([height, 0]);
     

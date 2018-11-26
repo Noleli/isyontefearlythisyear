@@ -24,8 +24,13 @@
 }
 
 .overlays .yearLine line {
-    stroke: #ee0022;
+    stroke: #777777;
     stroke-width: 2px;
+    stroke-dasharray: 3;
+}
+
+.overlays .yearLine text {
+    font-size: 13px;
 }
 
 .event .main .bars {
