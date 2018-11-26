@@ -20,7 +20,7 @@ let selectedDate = d3.local();
 
 d3.json("data.json").then(dataCallback);
 
-let aggData, rawData, upcomingData, upcomingPoint;
+let aggData, rawData, upcomingData, upcomingPoint, currentDate;
 
 function dataCallback(data) {
     let eventMap = {
@@ -97,7 +97,9 @@ function update(transition) {
 
     events = eventsEnter.merge(events);
     events.order();
-    events.select("h2.label").text(d => d.key + " " + d.value.year + "/" + d.value.hebYear);
+    events.select("h2.label").text(d => d.key + " " + d.value.year + "/" + d.value.hebYear
+        + ((d.value.actualDate - currentDate) > 0 ? " will be " : " is ")
+        + formatOntimeness(earlyLateThresholds(aggData.get(d.key).get(d.value.date).cumFreq)));
     events.select("p.date").text(d => d3.utcFormat("%B %e")(upcomingData.get(d.key).actualDate));
 
     events.each(function(d) {
@@ -185,7 +187,7 @@ function update(transition) {
             .attr("x1", dd => txTime(dd.start))
             .attr("x2", dd => txTime(dd.end));
         thresholdLabels.select("text")
-            .text(dd => formatOntimeness(dd.range))
+            .text(dd => formatOntimeness(dd.range, true))
             .attr("x", dd => (txTime(dd.end) + txTime(dd.start))/2)
             .attr("dx", function() { return -this.getBBox().width/2 })
             .attr("dy", 13);
@@ -259,12 +261,12 @@ function sortByUpcoming(date) {
         "Chanukah": 9
     };
 
-    date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); // convert to naive
+    currentDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); // convert to naive
     upcomingData = d3.nest()
         .key(d => d.event)
         .rollup(d => d[0]) // .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
         .map(rawData
-            .filter(d => (d.actualDate - date)/1000/3600/24 > -eventHoldover[d.event])
+            .filter(d => (d.actualDate - currentDate)/1000/3600/24 > -eventHoldover[d.event])
             .sort((a, b) => d3.ascending(a.actualDate, b.actualDate))
         );
 
@@ -322,12 +324,22 @@ function makeThresholdData(data) {
     return thresholdData;
 }
 
-function formatOntimeness(str) {
-    let map = {
-        early: "Early",
-        ontime: "On time",
-        late: "Late"
-    };
+function formatOntimeness(str, caps) {
+    let map;
+    if(caps) {
+        map = {
+            early: "Early",
+            ontime: "On time",
+            late: "Late"
+        };
+    }
+    else {
+        map = {
+            early: "early",
+            ontime: "on time",
+            late: "late"
+        };
+    }
     return map[str];
 }
 
