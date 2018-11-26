@@ -169,7 +169,7 @@ function makeAnswerDescription() {
     if((upcomingPoint.cumFreq - upcomingPoint.freq) < .5) {
         outString = outString
             + "earlier than "
-            + percentFormat(1 - (upcomingPoint.cumFreq - upcomingPoint.freq));
+            + percentFormat(1 - upcomingPoint.cumFreq);
     }
     else {
         outString = outString
