@@ -1,3 +1,7 @@
+.container {
+    margin-top: 15px;
+}
+
 .event {
     margin-bottom: 24px;
 }
@@ -18,11 +22,6 @@
     fill: none;
 }
 
-.event .eventLabel {
-    fill: #555555;
-    font-size: 14px;
-}
-
 .overlays .yearLine line {
     stroke: #777777;
     stroke-width: 2px;
@@ -31,6 +30,7 @@
 
 .overlays .yearLine text {
     font-size: 13px;
+    fill: #555555;
 }
 
 .event .main .bars {
