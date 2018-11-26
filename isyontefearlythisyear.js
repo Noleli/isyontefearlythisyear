@@ -155,7 +155,7 @@ function update(transition) {
 
     d3.select("#big-question").text("Is " + upcomingPoint.event + " " + earlyLateDirection + " " + " this year?");
     d3.select("#big-answer").text(makeBigAnswer());
-    d3.select("#answer-description").text(makeAnswerDescription());
+    d3.select("#answer-description").html(makeAnswerDescription());
 }
 
 function makeBigAnswer() {
@@ -165,8 +165,8 @@ function makeBigAnswer() {
 
 function makeAnswerDescription() {
     let outString = upcomingPoint.event
-        + " starts on " + d3.utcFormat("%A, %B %e, %Y")(upcomingPoint.actualDate)
-        + ", which is ";
+        + " starts on <strong>" + d3.utcFormat("%A, %B %e, %Y")(upcomingPoint.actualDate)
+        + "</strong>, which is ";
 
     if((upcomingPoint.cumFreq - upcomingPoint.freq) < .5) {
         outString = outString
