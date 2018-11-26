@@ -66,7 +66,8 @@ function update(transition) {
     events.exit().remove();
     let eventsEnter = events.enter().append("div").attr("class", "event");
 
-    let label = eventsEnter.append("h2").attr("class", "label");
+    eventsEnter.append("h2").attr("class", "label");
+    eventsEnter.append("p").attr("class", "date lead text-muted");
     let svg = eventsEnter.append("svg");
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
     let mainG = g.append("g").attr("class", "main");
@@ -92,7 +93,8 @@ function update(transition) {
 
     events = eventsEnter.merge(events);
     events.order();
-    events.select("h2.label").text(d => d.key + " " + d.value.year);
+    events.select("h2.label").text(d => d.key + " " + d.value.year + "/" + d.value.hebYear);
+    events.select("p.date").text(d => d3.utcFormat("%B %e")(upcomingData.get(d.key).actualDate));
 
     events.each(function(d) {
         let thisEvent = d3.select(this);
