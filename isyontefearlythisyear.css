@@ -1,5 +1,12 @@
+:root {
+    --bar-color: #2E69FF;
+    --leap-color: #54B1FF;
+
+}
+
 .container {
     margin-top: 15px;
+    margin-bottom: 15px;
 }
 
 .event {
@@ -34,11 +41,11 @@
 }
 
 .event .main .bars {
-    fill: #2E69FF;
+    fill: var(--bar-color);
 }
 
 .event .main .bars.leap {
-    fill: #54B1FF;
+    fill: var(--leap-color);
 }
 
 .event .overlays .dateOverlay rect.hover {
@@ -72,4 +79,19 @@
 
 #answer-description {
     margin-bottom: 50px;
+}
+
+p.legend.leap {
+    margin-bottom: 0;
+}
+
+.legend span {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: var(--bar-color);
+}
+
+.legend.leap span {
+    background-color: var(--leap-color);
 }

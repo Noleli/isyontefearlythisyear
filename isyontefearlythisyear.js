@@ -57,6 +57,7 @@ function dataCallback(data) {
     sortByUpcoming(new Date());
 
     update();
+    d3.select(".container").classed("invisible", false);
 }
 
 function update(transition) {
