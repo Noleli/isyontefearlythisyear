@@ -133,6 +133,9 @@ function update(transition) {
         let overlaysEnter = overlays.enter().append("g").attr("class", "dateOverlay");
         overlaysEnter.append("rect").attr("class", "hover");
         overlaysEnter.append("text").attr("class", "overbar");
+        overlaysEnter
+            .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
+            .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)});
         overlays = overlays.merge(overlaysEnter);
         overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
