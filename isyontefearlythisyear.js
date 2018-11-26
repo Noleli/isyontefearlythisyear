@@ -88,7 +88,7 @@ function update(transition) {
             .paddingInner(.3));
 
         xTime.set(this, d3.scaleUtc()
-            .domain([dateRange[0], dateRange[dates.length-1]]));
+            .domain([dateRange[0], dateRange[dateRange.length-1]]));
 
         selectedDate.set(this, null);
     });
