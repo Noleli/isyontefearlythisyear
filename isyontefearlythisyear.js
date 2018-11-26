@@ -204,7 +204,13 @@ function makeBigAnswer() {
 }
 
 function makeAnswerDescription() {
-    let outString = upcomingPoint.event
+    let outString = "";
+
+    if(makeBigAnswer() == "No") {
+        outString = "It’s " + formatOntimeness(earlyLateThresholds(upcomingPoint.cumFreq)) + " this year. ";
+    }
+
+    outString = outString + upcomingPoint.event
         + " starts on <strong>" + d3.utcFormat("%A, %B %e, %Y")(upcomingPoint.actualDate)
         + "</strong>, which is ";
 
