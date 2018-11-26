@@ -102,7 +102,7 @@ function update(transition) {
 
         let xAxis = d3.axisBottom()
             .tickSizeOuter(0)
-            .tickFormat(d3.utcFormat("%m-%d"));
+            .tickFormat(d3.utcFormat("%m/%d"));
         
         thisEvent.select(".xAxis")
             .call(xAxis.scale(txTime).ticks(width <= 768 ? d3.utcWeek.every(1) : d3.utcDay.every(1)));
@@ -177,7 +177,7 @@ function makeAnswerDescription() {
             + percentFormat(upcomingPoint.cumFreq - upcomingPoint.freq);
     }
     
-    outString = outString + " of " + upcomingPoint.event;
+    outString = outString + " of years.";
     return outString;
 }
 
