@@ -9,18 +9,6 @@ let margin = { top: 20, right: 16, bottom: 20, left: 16 };
 
 let container = d3.select("#vis-container");
 
-let eventHoldover = {
-    "Tu BiShvat": 1,
-    "Erev Purim": 2,
-    "Erev Pesach": 9,
-    "Erev Shavuot": 3,
-    "Erev Tish'a B'Av": 2,
-    "Erev Rosh Hashana": 3,
-    "Erev Yom Kippur": 2,
-    "Erev Sukkot": 10,
-    "Chanukah: 1 Candle": 9
-};
-
 let earlyLateThresholds = d3.scaleThreshold()
     .domain([1/3, 2/3])
     .range(["early", "ontime", "late"]);
@@ -35,11 +23,31 @@ d3.json("data.json").then(dataCallback);
 let aggData, rawData, upcomingData, upcomingPoint;
 
 function dataCallback(data) {
-    rawData = data;
-    
-    rawData.forEach(d => {
-        d.date = new Date(Date.UTC(2016, d.month - 1, d.day));
-        d.actualDate = new Date(Date.UTC(d.year, d.month - 1, d.day));
+    let eventMap = {
+        tb: "Tu BiShvat",
+        pu: "Purim",
+        pe: "Pesach",
+        sh: "Shavuot",
+        ta: "Tisha B’Av",
+        r: "Rosh Hashana",
+        y: "Yom Kippur",
+        su: "Sukkot",
+        c: "Chanukah"
+    };
+
+    rawData = [];
+    data.forEach(d => {
+        rawData.push({
+            event: eventMap[d.e],
+            year: d.y,
+            month: d.m,
+            day: d.d,
+            hebYear: d.hy,
+            leap: d.l,
+            date: new Date(Date.UTC(2016, d.m - 1, d.d)),
+            actualDate: new Date(Date.UTC(d.y, d.m - 1, d.d))
+        });
+        
     });
     rawData = rawData.sort((a, b) => {
         return a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month);
@@ -197,6 +205,18 @@ d3.select(window).on("resize", () => {
 });
 
 function sortByUpcoming(date) {
+    let eventHoldover = {
+        "Tu BiShvat": 1,
+        "Purim": 2,
+        "Pesach": 9,
+        "Shavuot": 3,
+        "Tisha B’Av": 2,
+        "Rosh Hashana": 3,
+        "Yom Kippur": 2,
+        "Sukkot": 10,
+        "Chanukah": 9
+    };
+
     date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); // convert to naive
     upcomingData = d3.nest()
         .key(d => d.event)
