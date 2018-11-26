@@ -198,15 +198,19 @@ function update(transition) {
     d3.select("#answer-description").html(makeAnswerDescription());
 }
 
-function makeBigAnswer() {
-    if(earlyLateThresholds(upcomingPoint.cumFreq) == earlyLateDirection) return "Yes";
-    else return "No";
+function makeBigAnswer(asBool) {
+    let answer = earlyLateThresholds(upcomingPoint.cumFreq) == earlyLateDirection;
+    if(asBool) return answer;
+    else {
+        if(answer) return "Yes!";
+        else return "No.";
+    }
 }
 
 function makeAnswerDescription() {
     let outString = "";
 
-    if(makeBigAnswer() == "No") {
+    if(makeBigAnswer(true) == false) {
         let ontimeness = formatOntimeness(earlyLateThresholds(upcomingPoint.cumFreq));
         outString = "It’s " + (ontimeness == "on time" ? "right " : " ") + ontimeness + " this year. ";
     }
