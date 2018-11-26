@@ -5,7 +5,7 @@ let earlyLateDirection = "early";
 let outerWidth, outerHeight,
     width, height;
 
-let margin = { top: 20, right: 16, bottom: 20, left: 16 };
+let margin = { top: 20, right: 16, bottom: 40, left: 16 };
 
 let container = d3.select("#vis-container");
 
@@ -75,6 +75,8 @@ function update(transition) {
     overlayG.append("g").attr("class", "yearLine").append("line").attr("y1", 0);
     overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
+    let belowAxis = g.append("g").attr("class", "belowAxis");
+    belowAxis
 
     if(eventsEnter.nodes().length > 0) size();
 
@@ -153,6 +155,24 @@ function update(transition) {
         thisEvent.select(".yearLine line")
             .attr("y2", height)
             .attr("transform", "translate(" + (tx(d.value.date) + tx.bandwidth()/2) + ")");
+
+
+        let thresholdData = makeThresholdData(aggData.get(d.key).values());
+        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (margin.top + height + 1) + ")");
+        let thresholdLabels = thisEvent.select("g.belowAxis").selectAll("g.thresholdLabel").data(thresholdData, dd => dd);
+        thresholdLabels.exit().remove();
+        let thresholdLabelsEnter = thresholdLabels.enter().append("g").attr("class", "thresholdLabel");
+        thresholdLabelsEnter.append("line");
+        thresholdLabelsEnter.append("text");
+        thresholdLabels = thresholdLabels.merge(thresholdLabelsEnter);
+        thresholdLabels.select("line")
+            .attr("x1", dd => txTime(dd.start))
+            .attr("x2", dd => txTime(dd.end));
+        thresholdLabels.select("text")
+            .text(dd => formatOntimeness(dd.range))
+            .attr("x", dd => (txTime(dd.end) + txTime(dd.start))/2)
+            .attr("dx", function() { return -this.getBBox().width/2 })
+            .attr("dy", 13);
     });
 
     d3.select("#big-question").text("Is " + upcomingPoint.event + " " + earlyLateDirection + " " + " this year?");
@@ -192,7 +212,7 @@ function size() {
     outerWidth = parseFloat(containerContainer.style("width"))
         - parseFloat(containerContainer.style("padding-left"))
         - parseFloat(containerContainer.style("padding-right")),
-    outerHeight = 100;
+    outerHeight = 140;
 
     width = outerWidth - margin.left - margin.right,
     height = outerHeight - margin.top - margin.bottom;
@@ -252,10 +272,45 @@ function aggregateData(startYear, endYear) {
         e.values().forEach(d => {
             cumFreq += d.freq;
             d.cumFreq = cumFreq;
+            d.ontimeness = earlyLateThresholds(cumFreq);
         });
     });
 
     histY.domain([0, d3.max(aggData.values().map(d => d3.max(d.values(), dd => dd.count)))]); // renormalize
+}
+
+function makeThresholdData(data) {
+    let thresholdPairs = d3.pairs(data).filter(dd => dd[0].ontimeness != dd[1].ontimeness);
+    let thresholdData = [];
+    thresholdData.push({
+        range: earlyLateThresholds.range()[0],
+        start: data[0].date,
+        end: thresholdPairs[0][0].date
+    });
+    earlyLateThresholds.range().forEach((t, i) => {
+        if(i != 0 && i != earlyLateThresholds.range().length-1) {
+            thresholdData.push({
+                range: t,
+                start: thresholdPairs[i-1][1].date,
+                end: thresholdPairs[i][0].date
+            });
+        }
+    });
+    thresholdData.push({
+        range: earlyLateThresholds.range()[earlyLateThresholds.range().length-1],
+        start: thresholdPairs[thresholdPairs.length-1][1].date,
+        end: data[data.length-1].date
+    });
+    return thresholdData;
+}
+
+function formatOntimeness(str) {
+    let map = {
+        early: "Early",
+        ontime: "On time",
+        late: "Late"
+    };
+    return map[str];
 }
 
 function makeDateRange(start, stop, dates) {

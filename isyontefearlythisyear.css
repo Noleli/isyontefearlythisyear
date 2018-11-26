@@ -1,8 +1,16 @@
+.event {
+    margin-bottom: 24px;
+}
+
 .event svg {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.event h2.label {
+    margin-bottom: 0;
 }
 
 .event .hist {
@@ -39,6 +47,15 @@
 
 .event .overlays .dateOverlay:hover text.overbar, .event .overlays .dateOverlay.touching text.overbar {
     fill: #000000;
+}
+
+.event .belowAxis .thresholdLabel line {
+    stroke: #333333;
+}
+
+.event .belowAxis .thresholdLabel text {
+    fill: #333333;
+    font-size: 13px;
 }
 
 #big-answer {
