@@ -5,7 +5,9 @@ let earlyLateDirection = "early";
 let outerWidth, outerHeight,
     width, height;
 
-let margin = { top: 20, right: 16, bottom: 40, left: 16 };
+let margin = { top: 12, right: 16, bottom: 20, left: 16 };
+
+let belowAxisHeight = 70;
 
 let container = d3.select("#vis-container");
 
@@ -74,12 +76,11 @@ function update(transition) {
     let mainG = g.append("g").attr("class", "main");
     let overlayG = g.append("g").attr("class", "overlays");
     let yearLine = overlayG.append("g").attr("class", "yearLine");
-    yearLine.append("line").attr("y1", -margin.top);
+    yearLine.append("line");
     yearLine.append("text");
     // overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
     let belowAxis = g.append("g").attr("class", "belowAxis");
-    belowAxis
 
     if(eventsEnter.nodes().length > 0) size();
 
@@ -162,7 +163,7 @@ function update(transition) {
         thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date));
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
-        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 22) + ")");
+        thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + margin.bottom + 2) + ")");
         let thresholdLabels = thisEvent.select("g.belowAxis").selectAll("g.thresholdLabel").data(thresholdData, dd => dd);
         thresholdLabels.exit().remove();
         let thresholdLabelsEnter = thresholdLabels.enter().append("g").attr("class", "thresholdLabel");
@@ -185,12 +186,15 @@ function update(transition) {
 }
 
 function placeYearLine(s, d) {
+    let belowThresholdsOffest = 30,
+        freqRectHeight = 30;
     s.attr("transform", "translate(" + xTime.get(s.node())(d.date) + ")");
     s.select("line")
-        .attr("y2", height + margin.bottom);
+        .attr("y1", height)
+        .attr("y2", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10);
     s.select("text")
         .text("This year")
-        .attr("y", -margin.top)
+        .attr("y", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10)
         .attr("dx", function() {
             let padding = 3;
             let pos = xTime.get(this)(d.date);
@@ -199,7 +203,7 @@ function placeYearLine(s, d) {
             }
             else return padding;
         })
-        .attr("dy", 13);
+        .attr("dy", -4);
 }
 
 function makeBigAnswer(asBool) {
@@ -247,7 +251,7 @@ function size() {
         - parseFloat(containerContainer.style("padding-right")),
     // outerHeight = 140;
     height = 100;
-    outerHeight = height + margin.top + margin.bottom;
+    outerHeight = height + margin.top + margin.bottom + belowAxisHeight;
 
     width = outerWidth - margin.left - margin.right,
     // height = outerHeight - margin.top - margin.bottom;
