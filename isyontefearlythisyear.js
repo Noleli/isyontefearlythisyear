@@ -146,7 +146,7 @@ function update(transition) {
             .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
             .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
             .on("mouseover", dd => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, dd))
-            .on("mouseout", () => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, d.value));
+            .on("mouseout", () => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date)));
         overlays = overlays.merge(overlaysEnter);
         overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
@@ -159,7 +159,7 @@ function update(transition) {
             .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
             .attr("dy", -3);
 
-        thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, d.value);
+        thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date));
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
         thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 22) + ")");
