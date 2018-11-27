@@ -76,7 +76,7 @@ function update(transition) {
     let yearLine = overlayG.append("g").attr("class", "yearLine");
     yearLine.append("line").attr("y1", -margin.top);
     yearLine.append("text");
-    overlayG.append("g").attr("class", "overbar");
+    // overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
     let belowAxis = g.append("g").attr("class", "belowAxis");
     belowAxis
@@ -144,12 +144,14 @@ function update(transition) {
         overlaysEnter.append("text").attr("class", "overbar");
         overlaysEnter
             .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
-            .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)});
+            .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
+            .on("mouseover", dd => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, dd))
+            .on("mouseout", () => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, d.value));
         overlays = overlays.merge(overlaysEnter);
         overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
             .attr("y", -margin.top)
-            .attr("width", tx.bandwidth())
+            .attr("width", tx.step())
             .attr("height", outerHeight);
         overlays.select("text.overbar")
             .text(dd => percentFormat(dd.freq))
@@ -157,24 +159,7 @@ function update(transition) {
             .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
             .attr("dy", -3);
 
-        thisEvent.select(".yearLine")
-            .attr("transform", "translate(" + txTime(d.value.date) + ")");
-        thisEvent.select(".yearLine line")
-            .attr("y2", height + margin.bottom);
-        thisEvent.select(".yearLine text")
-            .text("This year")
-            .attr("y", -margin.top)
-            .attr("dx", function() {
-                let padding = 3;
-                let pos = txTime(d.value.date);
-                if(pos + this.getBBox().width + 2* padding > width) {
-                    return -this.getBBox().width - padding;
-                }
-                else return padding;
-            })
-            .attr("dy", 13);
-            // .attr("x")
-
+        thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, d.value);
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
         thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + 22) + ")");
@@ -197,6 +182,24 @@ function update(transition) {
     d3.select("#big-question").text("Is " + upcomingPoint.event + " " + earlyLateDirection + " " + " this year?");
     d3.select("#big-answer").text(makeBigAnswer());
     d3.select("#answer-description").html(makeAnswerDescription());
+}
+
+function placeYearLine(s, d) {
+    s.attr("transform", "translate(" + xTime.get(s.node())(d.date) + ")");
+    s.select("line")
+        .attr("y2", height + margin.bottom);
+    s.select("text")
+        .text("This year")
+        .attr("y", -margin.top)
+        .attr("dx", function() {
+            let padding = 3;
+            let pos = xTime.get(this)(d.date);
+            if(pos + this.getBBox().width + 2* padding > width) {
+                return -this.getBBox().width - padding;
+            }
+            else return padding;
+        })
+        .attr("dy", 13);
 }
 
 function makeBigAnswer(asBool) {
