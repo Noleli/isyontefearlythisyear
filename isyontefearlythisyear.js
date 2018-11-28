@@ -7,7 +7,7 @@ let outerWidth, outerHeight,
 
 let margin = { top: 12, right: 16, bottom: 20, left: 16 };
 
-let belowAxisHeight = 70;
+let belowAxisHeight = 100;
 
 let container = d3.select("#vis-container");
 
@@ -189,37 +189,58 @@ function placeYearLine(s, d) {
     let belowThresholdsOffest = 30,
         freqRectHeight = 30;
     s.attr("transform", "translate(" + xTime.get(s.node())(d.date) + ")");
-    s.select("line")
-        .attr("y1", height)
-        .attr("y2", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10);
 
     let dateFlagText = [];
     // if(d.date.valueOf() == upcomingData.get(d.event).date.valueOf()) 
     let thisEventOnDate = rawData.filter(dd => dd.date.valueOf() == d.date.valueOf() && dd.event == d.event);
-    let thisYearIndex = thisEventOnDate.findIndex(dd => dd.year == upcomingData.get(d.event).year);
-    if(thisYearIndex != -1) { // this year
+    let thisYearIndex = thisEventOnDate.findIndex(dd => dd.year - upcomingData.get(d.event).year >= 0);
+    if(thisYearIndex == -1) { // all in the past
+        dateFlagText.push("Last time: " + thisEventOnDate[thisEventOnDate.length-1].year);
+    }
+    else if(thisEventOnDate[thisYearIndex].year == upcomingData.get(d.event).year) { // this year
         dateFlagText.push("This year");
-        if(thisYearIndex > 0) dateFlagText.push("Last time: " + thisEventOnDate[thisYearIndex - 1].year);
-        if(thisYearIndex < thisEventOnDate.length - 1) dateFlagText.push("Next time: " + thisEventOnDate[thisYearIndex + 1].year);
+        try {
+            dateFlagText.push("Last time: " + thisEventOnDate[thisYearIndex - 1].year);
+        }
+        catch(e) {}
+        try {
+            dateFlagText.push("Next time: " + thisEventOnDate[thisYearIndex + 1].year);
+        }
+        catch(e) {}
     }
     else {
-        let lastTimeIndex = d3.scan(thisEventOnDate, (a, b) => Math.abs(a.year - upcomingData.get(d.event).year) - Math.abs(b.year - upcomingData.get(d.event).year));
-        if(thisEventOnDate[lastTimeIndex].year < upcomingData.get(d.event).year) dateFlagText.push("Last time: " + thisEventOnDate[lastTimeIndex].year);
-        if(lastTimeIndex < thisEventOnDate.length - 2) dateFlagText.push("Next time: " + thisEventOnDate[lastTimeIndex + 1].year);
-        console.log(d.event, d.date, lastTimeIndex);
+        try {
+            dateFlagText.push("Last time: " + thisEventOnDate[thisYearIndex - 1].year);
+        }
+        catch(e) {}
+        try {
+            dateFlagText.push("Next time: " + thisEventOnDate[thisYearIndex].year);
+        }
+        catch(e) {}
     }
-    s.select("text")
-        .text("This year")
-        .attr("y", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10)
-        .attr("dx", function() {
-            let padding = 3;
-            let pos = xTime.get(this)(d.date);
-            if(pos + this.getBBox().width + 2* padding > width) {
-                return -this.getBBox().width - padding;
-            }
-            else return padding;
-        })
+
+    let text = s.selectAll("text").data(dateFlagText, t => t);
+    text.exit().remove();
+    text = text.enter().append("text").merge(text)
+        .text(t => t)
+        .classed("thisYear", t => t == "This year")
+        .attr("y", (t, i) => height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10 + i*15)
         .attr("dy", -4);
+
+    let widest = d3.max(text.nodes().map(n => n.getBBox().width));
+
+    text.attr("dx", function() {
+        let padding = 3;
+        let pos = xTime.get(this)(d.date);
+        if(pos + widest + 2 * padding > width) {
+            return -this.getBBox().width - padding;
+        }
+        else return padding;
+    });
+
+    s.select("line")
+        .attr("y1", height)
+        .attr("y2", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10 + (dateFlagText.length-1)*13);
 }
 
 function makeBigAnswer(asBool) {

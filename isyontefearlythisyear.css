@@ -36,8 +36,13 @@
 }
 
 .overlays .yearLine text {
-    font-size: 13px;
+    font-size: 14px;
     fill: #555555;
+}
+
+.overlays .yearLine text.thisYear {
+    fill: #D0353D;
+    font-weight: bold;
 }
 
 .event .main .bars {
