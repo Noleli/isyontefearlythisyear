@@ -77,7 +77,7 @@ function update(transition) {
     let overlayG = g.append("g").attr("class", "overlays");
     let yearLine = overlayG.append("g").attr("class", "yearLine");
     yearLine.append("line");
-    yearLine.append("text");
+    // yearLine.append("text"); yearLine.append("text"); yearLine.append("text");
     // overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
     let belowAxis = g.append("g").attr("class", "belowAxis");
@@ -192,6 +192,22 @@ function placeYearLine(s, d) {
     s.select("line")
         .attr("y1", height)
         .attr("y2", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10);
+
+    let dateFlagText = [];
+    // if(d.date.valueOf() == upcomingData.get(d.event).date.valueOf()) 
+    let thisEventOnDate = rawData.filter(dd => dd.date.valueOf() == d.date.valueOf() && dd.event == d.event);
+    let thisYearIndex = thisEventOnDate.findIndex(dd => dd.year == upcomingData.get(d.event).year);
+    if(thisYearIndex != -1) { // this year
+        dateFlagText.push("This year");
+        if(thisYearIndex > 0) dateFlagText.push("Last time: " + thisEventOnDate[thisYearIndex - 1].year);
+        if(thisYearIndex < thisEventOnDate.length - 1) dateFlagText.push("Next time: " + thisEventOnDate[thisYearIndex + 1].year);
+    }
+    else {
+        let lastTimeIndex = d3.scan(thisEventOnDate, (a, b) => Math.abs(a.year - upcomingData.get(d.event).year) - Math.abs(b.year - upcomingData.get(d.event).year));
+        if(thisEventOnDate[lastTimeIndex].year < upcomingData.get(d.event).year) dateFlagText.push("Last time: " + thisEventOnDate[lastTimeIndex].year);
+        if(lastTimeIndex < thisEventOnDate.length - 2) dateFlagText.push("Next time: " + thisEventOnDate[lastTimeIndex + 1].year);
+        console.log(d.event, d.date, lastTimeIndex);
+    }
     s.select("text")
         .text("This year")
         .attr("y", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10)
