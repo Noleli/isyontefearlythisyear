@@ -1,6 +1,6 @@
 "use strict";
 
-let earlyLateDirection = "early";
+let earlyLateDirection = window.location.hostname.includes("late") ? "late" : "early";
 
 let outerWidth, outerHeight,
     width, height;
