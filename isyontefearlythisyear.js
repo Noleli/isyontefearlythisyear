@@ -2,6 +2,8 @@
 
 let earlyLateDirection = window.location.hostname.includes("late") ? "late" : "early";
 
+d3.select("title").text("Is yontef " + earlyLateDirection + " this year dot com");
+
 let outerWidth, outerHeight,
     width, height;
 
