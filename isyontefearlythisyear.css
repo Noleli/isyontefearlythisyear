@@ -94,8 +94,18 @@
     margin-bottom: 50px;
 }
 
-p.legend.leap {
+#legend {
+    margin-bottom: 30px;
+}
+
+#legend p {
+    display: inline-block;
     margin-bottom: 0;
+}
+
+
+#legend p.leap {
+    margin-right: 20px;
 }
 
 .legend span {
