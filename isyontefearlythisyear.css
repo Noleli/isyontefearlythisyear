@@ -75,6 +75,14 @@
     font-size: 13px;
 }
 
+.event .belowAxis .freqLine {
+    fill: #ABC3D8;
+}
+
+.event .belowAxis .freqLine text {
+    fill: #000000;
+}
+
 #big-answer {
     text-align: center;
     /*margin-top: 100px;*/

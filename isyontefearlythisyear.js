@@ -10,6 +10,12 @@ let outerWidth, outerHeight,
 let margin = { top: 12, right: 16, bottom: 20, left: 16 };
 
 let belowAxisHeight = 100;
+let freqRectHeight = 30,
+    belowFreqRectOffset = 42,
+    belowThresholdsOffest = 20;
+
+let freqArrowWidth = 10;
+
 
 let container = d3.select("#vis-container");
 
@@ -76,13 +82,18 @@ function update(transition) {
     let svg = eventsEnter.append("svg");
     let g = svg.append("g").attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
     let mainG = g.append("g").attr("class", "main");
-    let overlayG = g.append("g").attr("class", "overlays");
-    let yearLine = overlayG.append("g").attr("class", "yearLine");
-    yearLine.append("line");
     // yearLine.append("text"); yearLine.append("text"); yearLine.append("text");
     // overlayG.append("g").attr("class", "overbar");
     let xAxisG = g.append("g").attr("class", "xAxis");
     let belowAxis = g.append("g").attr("class", "belowAxis");
+    let freqLine = belowAxis.append("g").attr("class", "freqLine");
+    freqLine.append("polygon")
+        .attr("points", "0,0 " + freqArrowWidth + "," + (freqRectHeight/2) + " 0," + freqRectHeight);
+    freqLine.append("rect");
+    freqLine.append("text");
+    let overlayG = g.append("g").attr("class", "overlays");
+    let yearLine = overlayG.append("g").attr("class", "yearLine");
+    yearLine.append("line");
 
     if(eventsEnter.nodes().length > 0) size();
 
@@ -148,8 +159,8 @@ function update(transition) {
         overlaysEnter
             .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
             .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
-            .on("mouseover", dd => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, dd))
-            .on("mouseout", () => thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date)));
+            .on("mouseover", (dd) => onHover(dd, thisEvent))
+            .on("mouseout", (dd) => onUp(thisEvent));
         overlays = overlays.merge(overlaysEnter);
         overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
@@ -162,7 +173,8 @@ function update(transition) {
             .attr("dx", function() { return -this.getBBox().width/2 + tx.bandwidth()/2 })
             .attr("dy", -3);
 
-        thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date));
+        // thisEvent.select("g.overlays").select(".yearLine").call(placeYearLine, aggData.get(d.key).get(d.value.date));
+        onUp(thisEvent);
 
         let thresholdData = makeThresholdData(aggData.get(d.key).values());
         thisEvent.select("g.belowAxis").attr("transform", "translate(" + 0 + ", " + (height + margin.bottom + 2) + ")");
@@ -187,9 +199,63 @@ function update(transition) {
     d3.select("#answer-description").html(makeAnswerDescription());
 }
 
+function onHover(d, thisEvent) {
+    let yl = thisEvent.select("g.overlays").select(".yearLine");
+    placeYearLine(yl, d);
+
+    let fl = thisEvent.select("g.belowAxis").select(".freqLine");
+    placeFreqLine(fl, d);
+}
+
+function onUp(thisEvent) {
+    let d = thisEvent.datum();
+    let dd = aggData.get(d.key).get(d.value.date);
+    onHover(dd, thisEvent);
+}
+
+function placeFreqLine(s, d) {
+    s.attr("transform", "translate(0, " + belowThresholdsOffest + ")");
+    s.select("rect")
+        .attr("y", 0)
+        .attr("height", freqRectHeight);
+    s.select("text").attr("dy", 20);
+
+    let txTime = xTime.get(s.node());
+
+    if(d.cumFreq < .5) {
+        s.select("rect")
+            .attr("x", txTime(d.date) + freqArrowWidth)
+            .attr("width", txTime.range()[1] - txTime(d.date) - freqArrowWidth);
+        s.select("polygon").attr("transform", "translate(" + (txTime(d.date) + freqArrowWidth) + ") scale(-1 1)");
+        s.select("text")
+            .text(d3.utcFormat("%B %e")(d.date) + ": earlier than " + percentFormat(1 - d.cumFreq))
+            .text(function() {
+                if(this.getBBox().width > s.select("rect").attr("width") - 6) {
+                    return d3.utcFormat("%m/%d")(d.date) + ": earlier than " + percentFormat(1 - d.cumFreq);
+                }
+                else return d3.select(this).text();
+            })
+            .attr("x", txTime(d.date) + freqArrowWidth + 3);
+    }
+    else {
+        s.select("rect")
+            .attr("x", txTime.range()[0])
+            .attr("width", txTime(d.date) - txTime.range()[0] - freqArrowWidth);
+        s.select("polygon").attr("transform", "translate(" + (txTime(d.date) - freqArrowWidth) + ")");
+        s.select("text")
+            .text(d3.utcFormat("%B %e")(d.date) + ": later than " + percentFormat(d.cumFreq - d.freq))
+            .text(function() {
+                if(this.getBBox().width > s.select("rect").attr("width") - 6) {
+                    return d3.utcFormat("%m/%d")(d.date) + ": later than " + percentFormat(d.cumFreq - d.freq);
+                }
+                else return d3.select(this).text();
+            })
+            .attr("x", function() { return txTime(d.date) - this.getBBox().width - 3 - freqArrowWidth });
+    }
+
+}
+
 function placeYearLine(s, d) {
-    let belowThresholdsOffest = 30,
-        freqRectHeight = 30;
     s.attr("transform", "translate(" + xTime.get(s.node())(d.date) + ")");
 
     let dateFlagText = [];
@@ -226,7 +292,7 @@ function placeYearLine(s, d) {
     text = text.enter().append("text").merge(text)
         .text(t => t)
         .classed("thisYear", t => t == "This year")
-        .attr("y", (t, i) => height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10 + i*15)
+        .attr("y", (t, i) => height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + i*15)
         .attr("dy", -4);
 
     let widest = d3.max(text.nodes().map(n => n.getBBox().width));
@@ -242,7 +308,7 @@ function placeYearLine(s, d) {
 
     s.select("line")
         .attr("y1", height)
-        .attr("y2", height + margin.bottom + belowThresholdsOffest + freqRectHeight + 10 + (dateFlagText.length-1)*13);
+        .attr("y2", height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + (dateFlagText.length-1)*13);
 }
 
 function makeBigAnswer(asBool) {
@@ -266,7 +332,7 @@ function makeAnswerDescription() {
         + " starts on <strong>" + d3.utcFormat("%A, %B %e, %Y")(upcomingPoint.actualDate)
         + "</strong>, which is ";
 
-    if((upcomingPoint.cumFreq - upcomingPoint.freq) < .5) {
+    if((upcomingPoint.cumFreq) < .5) { //  - upcomingPoint.freq
         outString = outString
             + "earlier than "
             + percentFormat(1 - upcomingPoint.cumFreq);
