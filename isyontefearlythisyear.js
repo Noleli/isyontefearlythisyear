@@ -26,7 +26,8 @@ let earlyLateThresholds = d3.scaleThreshold()
 let x = d3.local(),
     xTime = d3.local();
 let histY = d3.scaleLinear();
-let selectedDate = d3.local();
+
+let hoveredDate = null; // doing it this way for mobile (drag) compatibility
 
 d3.json("data.json").then(dataCallback);
 
@@ -107,7 +108,6 @@ function update(transition) {
         xTime.set(this, d3.scaleUtc()
             .domain([dateRange[0], dateRange[dateRange.length-1]]));
 
-        selectedDate.set(this, null);
     });
 
     events = eventsEnter.merge(events);
@@ -172,7 +172,8 @@ function update(transition) {
             .on("mouseout", (dd) => onUp(thisEvent));
         thisEvent.select("g.overlays").call(eventDrag);
         overlays = overlays.merge(overlaysEnter);
-        overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
+        overlays
+            .attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
             .attr("y", -margin.top)
             .attr("width", tx.step())
@@ -215,12 +216,17 @@ function onHover(d, thisEvent) {
 
     let fl = thisEvent.select("g.belowAxis").select(".freqLine");
     placeFreqLine(fl, d);
+
+    hoveredDate = d.date;
+
+    thisEvent.select(".overlays").selectAll(".dateOverlay").classed("touching", dd => {return dd.date.valueOf() == d.date.valueOf()});
 }
 
 function onUp(thisEvent) {
     let d = thisEvent.datum();
     let dd = aggData.get(d.key).get(d.value.date);
     onHover(dd, thisEvent);
+    hoveredDate = null;
 }
 
 function placeFreqLine(s, d) {

@@ -62,7 +62,7 @@
     fill: none;
 }
 
-.event .overlays .dateOverlay:hover text.overbar, .event .overlays .dateOverlay.touching text.overbar {
+.event .overlays .dateOverlay.touching text.overbar { /* .event .overlays .dateOverlay:hover text.overbar, */
     fill: #000000;
 }
 
