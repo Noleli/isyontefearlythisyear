@@ -151,16 +151,26 @@ function update(transition) {
             .attr("width", tx.bandwidth())
             .attr("height", dd => histY(dd[0]) - histY(dd[1]));
 
+        let eventDrag = d3.drag()
+            .on("start drag", dd => {
+                let thisDate = txTime.invert(d3.event.x);
+                thisDate = new Date(Date.UTC(thisDate.getUTCFullYear(), thisDate.getUTCMonth(), thisDate.getUTCDate()));
+                let thisPoint = aggData.get(d.key).get(thisDate);
+                onHover(thisPoint, thisEvent);
+            })
+            .on("end", dd => onUp(thisEvent));
+
         let overlays = thisEvent.select("g.overlays").selectAll("g.dateOverlay").data(aggData.get(d.key).values(), dd => dd.date);
         overlays.exit().remove();
         let overlaysEnter = overlays.enter().append("g").attr("class", "dateOverlay");
         overlaysEnter.append("rect").attr("class", "hover");
         overlaysEnter.append("text").attr("class", "overbar");
         overlaysEnter
-            .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
-            .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
+            // .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
+            // .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
             .on("mouseover", (dd) => onHover(dd, thisEvent))
             .on("mouseout", (dd) => onUp(thisEvent));
+        thisEvent.select("g.overlays").call(eventDrag);
         overlays = overlays.merge(overlaysEnter);
         overlays.attr("transform", dd => "translate(" + tx(dd.date) + ")");
         overlays.select("rect.hover")
@@ -231,7 +241,7 @@ function placeFreqLine(s, d) {
             .text(d3.utcFormat("%B %e")(d.date) + ": earlier than " + percentFormat(1 - d.cumFreq))
             .text(function() {
                 if(this.getBBox().width > s.select("rect").attr("width") - 6) {
-                    return d3.utcFormat("%m/%d")(d.date) + ": earlier than " + percentFormat(1 - d.cumFreq);
+                    return d3.utcFormat("%m/%d")(d.date) + ": before " + percentFormat(1 - d.cumFreq);
                 }
                 else return d3.select(this).text();
             })
@@ -246,7 +256,7 @@ function placeFreqLine(s, d) {
             .text(d3.utcFormat("%B %e")(d.date) + ": later than " + percentFormat(d.cumFreq - d.freq))
             .text(function() {
                 if(this.getBBox().width > s.select("rect").attr("width") - 6) {
-                    return d3.utcFormat("%m/%d")(d.date) + ": later than " + percentFormat(d.cumFreq - d.freq);
+                    return d3.utcFormat("%m/%d")(d.date) + ": after " + percentFormat(d.cumFreq - d.freq);
                 }
                 else return d3.select(this).text();
             })
