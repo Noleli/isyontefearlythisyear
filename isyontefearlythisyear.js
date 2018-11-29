@@ -27,8 +27,6 @@ let x = d3.local(),
     xTime = d3.local();
 let histY = d3.scaleLinear();
 
-let hoveredDate = null; // doing it this way for mobile (drag) compatibility
-
 d3.json("data.json").then(dataCallback);
 
 let aggData, rawData, upcomingData, upcomingPoint, currentDate;
@@ -217,8 +215,6 @@ function onHover(d, thisEvent) {
     let fl = thisEvent.select("g.belowAxis").select(".freqLine");
     placeFreqLine(fl, d);
 
-    hoveredDate = d.date;
-
     thisEvent.select(".overlays").selectAll(".dateOverlay").classed("touching", dd => {return dd.date.valueOf() == d.date.valueOf()});
 }
 
@@ -226,7 +222,7 @@ function onUp(thisEvent) {
     let d = thisEvent.datum();
     let dd = aggData.get(d.key).get(d.value.date);
     onHover(dd, thisEvent);
-    hoveredDate = null;
+    thisEvent.select(".overlays").selectAll(".dateOverlay").classed("touching", false);
 }
 
 function placeFreqLine(s, d) {
