@@ -1,8 +1,9 @@
 "use strict";
 
 let earlyLateDirection = window.location.hostname.includes("late") ? "late" : "early";
+let yontefSpelling = window.location.hostname.includes("yontef") ? "yontef" : "yom tov";
 
-d3.select("title").text("Is yontef " + earlyLateDirection + " this year dot com");
+d3.select("title").text("Is " + yontefSpelling + " " + earlyLateDirection + " this year dot com");
 
 let outerWidth, outerHeight,
     width, height;
