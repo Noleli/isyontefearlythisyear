@@ -1,1 +1,4 @@
-.ipynb_checkpoints/data exploration and munging-checkpoint.ipynb
+.cache
+dist/
+.parcel-cache
+node_modules
