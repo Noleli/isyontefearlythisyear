@@ -1,12 +1,11 @@
 import * as d3 from 'd3';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const earlyLateDirection = window.location.hostname.includes('late') ? 'late' : 'early';
-const yontefSpelling = window.location.hostname.includes('yontef') ? 'yontef' : 'yom tov';
+const earlyLateDirection = location.hostname.includes('late') ? 'late' : 'early';
+const yontefSpelling = location.hostname.includes('yontef') ? 'yontef' : 'yom tov';
 
-d3.select('title').text('Is ' + yontefSpelling + ' ' + earlyLateDirection + ' this year dot com');
+d3.select('title').text(`Is ${yontefSpelling} ${earlyLateDirection} this year dot com`);
 
-let outerWidth;
 let outerHeight;
 let width;
 let height;
@@ -86,11 +85,9 @@ function update(transition) {
 	eventsEnter.append('h2').attr('class', 'label');
 	eventsEnter.append('p').attr('class', 'date lead text-muted');
 	const svg = eventsEnter.append('svg');
-	const g = svg.append('g').attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
-	const mainG = g.append('g').attr('class', 'main');
-	// YearLine.append("text"); yearLine.append("text"); yearLine.append("text");
-	// overlayG.append("g").attr("class", "overbar");
-	const xAxisG = g.append('g').attr('class', 'xAxis');
+	const g = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+	g.append('g').attr('class', 'main'); // MainG
+	g.append('g').attr('class', 'xAxis'); // XAxisG
 	const belowAxis = g.append('g').attr('class', 'belowAxis');
 	const freqLine = belowAxis.append('g').attr('class', 'freqLine');
 	freqLine.append('polygon')
@@ -147,24 +144,24 @@ function update(transition) {
 		bar.exit().remove();
 		bar = bar.enter().append('rect').attr('class', 'bar')
 			.attr('x', dd => tx(dd.data.key))
-			.attr('y', (dd, i) => histY(0))
+			.attr('y', () => histY(0))
 			.attr('width', tx.bandwidth())
 			.attr('height', 0)
 			.merge(bar);
 		bar.transition().duration(duration)
 			.attr('x', dd => tx(dd.data.key))
-			.attr('y', (dd, i) => histY(dd[1]))
+			.attr('y', dd => histY(dd[1]))
 			.attr('width', tx.bandwidth())
 			.attr('height', dd => histY(dd[0]) - histY(dd[1]));
 
 		const eventDrag = d3.drag()
-			.on('start drag', dd => {
+			.on('start drag', () => {
 				let thisDate = txTime.invert(d3.event.x);
 				thisDate = new Date(Date.UTC(thisDate.getUTCFullYear(), thisDate.getUTCMonth(), thisDate.getUTCDate()));
 				const thisPoint = aggData.get(d.key).get(thisDate);
 				onHover(thisPoint, thisEvent);
 			})
-			.on('end', dd => onUp(thisEvent));
+			.on('end', () => onUp(thisEvent));
 
 		let overlays = thisEvent.select('g.overlays').selectAll('g.dateOverlay').data(aggData.get(d.key).values(), dd => dd.date);
 		overlays.exit().remove();
@@ -172,14 +169,11 @@ function update(transition) {
 		overlaysEnter.append('rect').attr('class', 'hover');
 		overlaysEnter.append('text').attr('class', 'overbar');
 		overlaysEnter
-		// .on("touchstart touchmove", function() { d3.select(this).classed("touching", true)})
-		// .on("touchend touchcancel", function() { d3.select(this).classed("touching", false)})
 			.on('mouseover', dd => onHover(dd, thisEvent))
-			.on('mouseout', dd => onUp(thisEvent));
+			.on('mouseout', () => onUp(thisEvent));
 		thisEvent.select('g.overlays').call(eventDrag);
 		overlays = overlays.merge(overlaysEnter);
-		overlays
-			.attr('transform', dd => 'translate(' + tx(dd.date) + ')');
+		overlays.attr('transform', dd => `translate(${tx(dd.date)})`);
 		overlays.select('rect.hover')
 			.attr('y', -margin.top)
 			.attr('width', tx.step())
@@ -188,7 +182,7 @@ function update(transition) {
 			.text(dd => percentFormat(dd.freq))
 			.attr('y', dd => histY(dd.count))
 			.attr('dx', function () {
-				return -this.getBBox().width / 2 + tx.bandwidth() / 2;
+				return (-this.getBBox().width / 2) + (tx.bandwidth() / 2);
 			})
 			.attr('dy', -3);
 
@@ -196,7 +190,7 @@ function update(transition) {
 		onUp(thisEvent);
 
 		const thresholdData = makeThresholdData(aggData.get(d.key).values());
-		thisEvent.select('g.belowAxis').attr('transform', 'translate(' + 0 + ', ' + (height + margin.bottom + 2) + ')');
+		thisEvent.select('g.belowAxis').attr('transform', `translate(0, ${(height + margin.bottom + 2)})`);
 		let thresholdLabels = thisEvent.select('g.belowAxis').selectAll('g.thresholdLabel').data(thresholdData, dd => dd);
 		thresholdLabels.exit().remove();
 		const thresholdLabelsEnter = thresholdLabels.enter().append('g').attr('class', 'thresholdLabel');
@@ -240,7 +234,7 @@ function onUp(thisEvent) {
 }
 
 function placeFreqLine(s, d) {
-	s.attr('transform', 'translate(0, ' + belowThresholdsOffest + ')');
+	s.attr('transform', `translate(0,${belowThresholdsOffest})`);
 	s.select('rect')
 		.attr('y', 0)
 		.attr('height', freqRectHeight);
@@ -252,7 +246,7 @@ function placeFreqLine(s, d) {
 		s.select('rect')
 			.attr('x', txTime(d.date) + freqArrowWidth)
 			.attr('width', txTime.range()[1] - txTime(d.date) - freqArrowWidth);
-		s.select('polygon').attr('transform', 'translate(' + (txTime(d.date) + freqArrowWidth) + ') scale(-1 1)');
+		s.select('polygon').attr('transform', `translate(${(txTime(d.date) + freqArrowWidth)}) scale(-1 1)`);
 		s.select('text')
 			.text(d3.utcFormat('%B %e')(d.date) + ': earlier than ' + percentFormat(1 - d.cumFreq))
 			.text(function () {
@@ -287,7 +281,7 @@ function placeYearLine(s, d) {
 	s.attr('transform', 'translate(' + xTime.get(s.node())(d.date) + ')');
 
 	const dateFlagText = [];
-	const thisEventOnDate = rawData.filter(dd => dd.date.valueOf() === d.date.valueOf() && dd.event == d.event);
+	const thisEventOnDate = rawData.filter(dd => dd.date.valueOf() === d.date.valueOf() && dd.event === d.event);
 	const thisYearIndex = thisEventOnDate.findIndex(dd => dd.year - upcomingData.get(d.event).year >= 0);
 	if (thisYearIndex === -1) { // All in the past
 		dateFlagText.push('Last time: ' + thisEventOnDate[thisEventOnDate.length - 1].year);
@@ -315,7 +309,7 @@ function placeYearLine(s, d) {
 	text = text.enter().append('text').merge(text)
 		.text(t => t)
 		.classed('thisYear', t => t === 'This year')
-		.attr('y', (t, i) => height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + i * 15)
+		.attr('y', (_, i) => height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + i * 15)
 		.attr('dy', -4);
 
 	const widest = d3.max(text.nodes().map(n => n.getBBox().width));
@@ -353,7 +347,7 @@ function makeAnswerDescription() {
 
 	if (makeBigAnswer(true) === false) {
 		const ontimeness = formatOntimeness(earlyLateThresholds(upcomingPoint.cumFreq));
-		outString = 'It’s ' + (ontimeness === 'on time' ? 'right ' : ' ') + ontimeness + ' this year. ';
+		outString = `It’s ${(ontimeness === 'on time' ? 'right ' : ' ')}${ontimeness} this year. `;
 	}
 
 	outString = outString + upcomingPoint.event +
@@ -378,9 +372,9 @@ const percentFormat = d3.format('.1%');
 
 function size() {
 	const containerContainer = d3.select(container.node().parentNode);
-	outerWidth = Number.parseFloat(containerContainer.style('width')) -
+	const outerWidth = Number.parseFloat(containerContainer.style('width')) -
         Number.parseFloat(containerContainer.style('padding-left')) -
-        Number.parseFloat(containerContainer.style('padding-right')),
+        Number.parseFloat(containerContainer.style('padding-right'));
 	// OuterHeight = 140;
 	height = 100;
 	outerHeight = height + margin.top + margin.bottom + belowAxisHeight;
@@ -435,15 +429,15 @@ function aggregateData(startYear, endYear) {
 	aggData = d3.nest()
 		.key(d => d.event)
 		.key(d => d.date)
-	// .sortValues((a, b) => a.month == b.month ? d3.ascending(a.day, b.day) : d3.ascending(a.month, b.month))
+
 		.rollup(d => {
 			return {event: d[0].event, date: d[0].date, count: d.length, leapCount: d.filter(dd => dd.leap).length, nonLeapCount: d.filter(dd => !dd.leap).length, freq: d.length / totalYears};
 		})
 		.map(rawData.filter(d => d.year >= startYear && d.year <= endYear));
 
-	for (const e of aggData.values()) {
+	for (const ex of aggData.values()) {
 		let cumFreq = 0;
-		for (const d of e.values()) {
+		for (const d of ex.values()) {
 			cumFreq += d.freq;
 			d.cumFreq = cumFreq;
 			d.ontimeness = earlyLateThresholds(cumFreq);
