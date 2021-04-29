@@ -138,7 +138,7 @@ function update(transition) {
 		bars.exit().remove();
 		bars = bars.enter().append('g')
 			.attr('class', 'bars')
-			.classed('leap', dd => dd.key == 'leapCount')
+			.classed('leap', dd => dd.key === 'leapCount')
 			.merge(bars);
 		let bar = bars.selectAll('rect.bar').data(dd => dd, dd => dd.data.key);
 		bar.exit().remove();
@@ -379,7 +379,7 @@ function size() {
 	height = 100;
 	outerHeight = height + margin.top + margin.bottom + belowAxisHeight;
 
-	width = outerWidth - margin.left - margin.right,
+	width = outerWidth - margin.left - margin.right;
 	// Height = outerHeight - margin.top - margin.bottom;
 
 	histY.range([height, 0]);
