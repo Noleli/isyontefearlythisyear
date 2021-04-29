@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yakov116/isyontefearlythisyear.git"
+    "url": "git+https://github.com/Noleli/isyontefearlythisyear.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/yakov116/isyontefearlythisyear/issues"
+    "url": "https://github.com/Noleli/isyontefearlythisyear/issues"
   },
-  "homepage": "https://github.com/yakov116/isyontefearlythisyear#readme",
+  "homepage": "https://github.com/Noleli/isyontefearlythisyear#readme",
   "dependencies": {
     "bootstrap": "^4.6.0",
     "d3": "^5.1.6"
