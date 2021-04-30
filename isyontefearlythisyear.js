@@ -124,7 +124,7 @@ function update(transition) {
 		const thisEvent = d3.select(this);
 
 		const tx = x.get(this).range([0, width]);
-		const txTime = xTime.get(this).range([tx.range()[0] + tx.bandwidth() / 2, tx.range()[1] - tx.bandwidth() / 2]);
+		const txTime = xTime.get(this).range([tx.range()[0] + tx.bandwidth() / 2, (tx.range()[1] - tx.bandwidth()) / 2]);
 
 		const xAxis = d3.axisBottom()
 			.tickSizeOuter(0)
@@ -309,7 +309,7 @@ function placeYearLine(s, d) {
 	text = text.enter().append('text').merge(text)
 		.text(t => t)
 		.classed('thisYear', t => t === 'This year')
-		.attr('y', (_, i) => height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + i * 15)
+		.attr('y', (_, i) => (height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + i) * 15)
 		.attr('dy', -4);
 
 	const widest = d3.max(text.nodes().map(n => n.getBBox().width));
@@ -317,7 +317,7 @@ function placeYearLine(s, d) {
 	text.attr('dx', function () {
 		const padding = 3;
 		const pos = xTime.get(this)(d.date);
-		if (pos + widest + 2 * padding > width) {
+		if ((pos + widest + 2) * padding > width) {
 			return -this.getBBox().width - padding;
 		}
 
@@ -326,7 +326,7 @@ function placeYearLine(s, d) {
 
 	s.select('line')
 		.attr('y1', height)
-		.attr('y2', height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + (dateFlagText.length - 1) * 13);
+		.attr('y2', (height + margin.bottom + belowThresholdsOffest + belowFreqRectOffset + 10 + (dateFlagText.length - 1)) * 13);
 }
 
 function makeBigAnswer(asBool) {
