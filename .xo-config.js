@@ -1,6 +1,6 @@
 module.exports = {
 	quiet: true,
-	space: true,
+	space: 4,
 	envs: [
 		'browser'
 	],
