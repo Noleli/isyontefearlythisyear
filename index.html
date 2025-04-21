@@ -1,9 +1,9 @@
 <!doctype html>
-    <html lang="en">
-    <head>
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
         <link rel="canonical" href="https://isyontefearlythisyear.com/">
 
@@ -12,87 +12,82 @@
         <meta property="og:description"        content="Nu? So is yontef early this year?" />
         <meta property="og:image"              content="https://isyontefearlythisyear.com/screenshot2-1.png" />
 
-        <!-- Bootstrap CSS -->
-        <link rel="stylesheet" href="https://assets.noahliebman.net/bootstrap4/css/bootstrap.min.css">
-        <link rel="stylesheet" href="isyontefearlythisyear.css">
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="./isyontefearlythisyear.css" />
 
-        <title>Is yontef early this year dot com</title>
-    </head>
-    <body>
-        <div class="container invisible">
-            <div class="row">
-                <div class="col-12">
-                    <h1 id="big-question"></h1>
-                    <div id="big-answer"></div>
-                    <div id="answer-description" class="lead"></div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div id="legend">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="card-text legend leap"><span></span> Hebrew leap year</p>
-                                <p class="card-text legend"><span></span> Non-leap year</p>
-                            </div>
-                        </div>
-                    </div>
-                </div><!-- /col -->
-                <div class="col-12">
-                    <div id="vis-container"></div>
-                </div><!-- /col -->
-            </div><!-- /row -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <h1 class="card-title">About</h1>
-                            <p class="card-text">It seems like someone is always commenting, “Yontef (aka <a href="https://github.com/Noleli/isyontefearlythisyear/issues/1">yom tov</a>) is really early/late this year!”</p>
+		<title>Is yontef early this year dot com</title>
+	</head>
+	<body>
+		<div class="container invisible">
+			<div class="row">
+				<div class="col-12">
+					<h1 id="big-question"></h1>
+					<div id="big-answer"></div>
+					<div id="answer-description" class="lead"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-12">
+					<div id="legend">
+						<div class="card">
+							<div class="card-body">
+								<p class="card-text legend leap"><span></span> Hebrew leap year</p>
+								<p class="card-text legend"><span></span> Non-leap year</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- /col -->
+				<div class="col-12">
+					<div id="vis-container"></div>
+				</div>
+				<!-- /col -->
+			</div>
+			<!-- /row -->
+			<div class="row">
+				<div class="col-12">
+					<div class="card">
+						<div class="card-body">
+							<h1 class="card-title">About</h1>
+							<p class="card-text">
+								It seems like someone is always commenting, “Yontef (aka <a href="https://github.com/Noleli/isyontefearlythisyear/issues/1">yom tov</a>) is really early/late this
+								year!”
+							</p>
 
-                            <p class="card-text">I decided to look into it using 817 years of data, from 1583 through 2399. Why 1583? Because that’s the first full year after the transition to the <a href="https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian calendar</a>. Why stop at 2399? That seemed like enough. ¯\_(ツ)_/¯</p>
+							<p class="card-text">
+								I decided to look into it using 817 years of data, from 1583 through 2399. Why 1583? Because that’s the first full year after the transition to the
+								<a href="https://en.wikipedia.org/wiki/Gregorian_calendar">Gregorian calendar</a>. Why stop at 2399? That seemed like enough. ¯\_(ツ)_/¯
+							</p>
 
-                            <p class="card-text">Early, on time, and late are defined as the <a href="https://en.wiktionary.org/wiki/tertile">first, middle, and last third of occurrences</a> (not dates) for each holiday. In other words, the earliest third of occurrences are considered early, not the earliest third of dates. All dates are <em>erev</em>, meaning the holiday starts that evening.</p>
+							<p class="card-text">
+								Early, on time, and late are defined as the <a href="https://en.wiktionary.org/wiki/tertile">first, middle, and last third of occurrences</a> (not dates) for each
+								holiday. In other words, the earliest third of occurrences are considered early, not the earliest third of dates. All dates are <em>erev</em>, meaning the holiday
+								starts that evening.
+							</p>
 
                             <p>For SEO purposes, you should also know that this website is great for finding out when the Jewish holidays are, whether yom tov is late, when Rosh Hashanah starts, and when <a href="https://projects.noahliebman.net/twitter/406137115794079744/">Chanukah/Hannuka/Hanukkah/Chanukka</a> falls.</p>
 
-                            <hr>
+							<hr />
 
                             <p class="card-text">I’m <a href="https://noahliebman.net/">Noah Liebman</a>. You might remember me from that time I forced a computer to count a bunch of <em>trop</em> at <a href="https://quantifiedcantillation.nl/">Quantified Cantillation</a>. Get in touch if that’s your thing. <a href="http://scr.im/noleli">Email</a> or <a href="https://mastodon.social/@noleli">Mastodon</a> are solid choices.</p>
 
-                            <p class="card-text">Credits: <a href="https://www.hebcal.com/">Hebcal</a>, <a href="https://d3js.org/">D3</a>, <a href="https://getbootstrap.com/">Bootstrap</a>. And the <a href="https://projects.fivethirtyeight.com/2018-midterm-election-forecast/house/">FiveThirtyEight 2018 House forecast</a> for the inspiration.</p>
+							<p class="card-text">
+								Credits: <a href="https://www.hebcal.com/">Hebcal</a>, <a href="https://d3js.org/">D3</a>, <a href="https://getbootstrap.com/">Bootstrap</a>. And the
+								<a href="https://projects.fivethirtyeight.com/2018-midterm-election-forecast/house/">FiveThirtyEight 2018 House forecast</a> for the inspiration.
+							</p>
 
-                            <p class="card-text">This is on <a href="https://github.com/Noleli/isyontefearlythisyear">Github</a>.</p>
-                            <p class="card-text">CC BY-NC-SA</p>
-                        </div>
-                    </div>
-                </div><!-- /col -->
-            </div><!-- /row -->
-        </div><!-- /container -->
+							<p class="card-text">This is on <a href="https://github.com/Noleli/isyontefearlythisyear">Github</a>.</p>
+							<p class="card-text">CC BY-NC-SA</p>
+						</div>
+					</div>
+				</div>
+				<!-- /col -->
+			</div>
+			<!-- /row -->
+		</div>
+		<!-- /container -->
 
-        <!-- Optional JavaScript -->
-        <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <script src="https://assets.noahliebman.net/jquery.slim.min.js"></script>
-        <script src="https://assets.noahliebman.net/bootstrap4/js/bootstrap.min.js"></script>
-        <script src="https://assets.noahliebman.net/d3-5/d3.min.js"></script>
-        <script src="isyontefearlythisyear.js"></script>
-
-
-
-        <!-- Matomo -->
-        <script type="text/javascript">
-          var _paq = _paq || [];
-          /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-          _paq.push(['trackPageView']);
-          _paq.push(['enableLinkTracking']);
-          _paq.push(['enableHeartBeatTimer']);
-          (function() {
-            var u="//assets.noahliebman.net/piwik/";
-            _paq.push(['setTrackerUrl', u+'piwik.php']);
-            _paq.push(['setSiteId', '4']);
-            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-            g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-          })();
-        </script>
-        <!-- End Matomo Code -->
-    </body>
+		<!-- Optional JavaScript -->
+		<script src="isyontefearlythisyear.js" type="module"></script>
+	</body>
 </html>

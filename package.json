@@ -1,0 +1,34 @@
+{
+  "name": "isyontefearlythisyear",
+  "version": "1.0.0",
+  "description": "A little interactive data viz about when the Jewish holidays fall. It’s online at [https://isyontefearlythisyear.com](https://isyontefearlythisyear.com) and its evil twin, [https://isyonteflatethisyear.com](https://isyonteflatethisyear.com).",
+  "browserslist": [
+    "last 1 Chrome version",
+    "last 1 Firefox version"
+  ],
+  "scripts": {
+    "start": "parcel index.html",
+    "watch": "parcel watch index.html",
+    "demo:build": "parcel build --public-url ./ index.html --detailed-report 0 --no-source-maps",
+    "build": "parcel build index.html --no-content-hash --public-url ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Noleli/isyontefearlythisyear.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Noleli/isyontefearlythisyear/issues"
+  },
+  "homepage": "https://github.com/Noleli/isyontefearlythisyear#readme",
+  "dependencies": {
+    "bootstrap": "^4.6.0",
+    "d3": "^7.9.0"
+  },
+  "devDependencies": {
+    "parcel": "^2.14.4",
+    "parcel-reporter-static-files-copy": "^1.5.3",
+    "xo": "^0.58.0"
+  }
+}
